@@ -2,10 +2,10 @@
 // @name        挊
 // @namespace   撸
 // @description 自动获取磁链接并自动离线下载
-// @include     http://www.javhip.com/*
+// @include     http://www.javtag.com/*
 // @include     http://www.avmask.net/*
 // @include     http://www.avmemo.com/*
-// @include     http://www.javlibrary.com/*
+// @include     http://www.jav2lib.com/*
 // @include     http://www.libredmm.com/products/*
 // @include     http://www.dmm.co.jp/digital/videoa/*
 // @include     http://www.minnano-av.com/av*
@@ -25,7 +25,7 @@
 // @include     http://www.cilizhushou.com/search/*
 // @include     http://www.btava.com/*
 // @include     http://www.instsee.com/*
-// @version     1.21
+// @version     1.22
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -203,8 +203,8 @@ var add_style = function(css) {
   else {
     GM_addStyle([
       '#magnet-tab{text-align: center ;}',
-      '#magnet-tab table{margin:10px auto;border:1px solid #cad9ea;color:#666 !important;font-size:12px;text-align:center;background-color: #F3F3F3;}',
-      '.magnet-th,.magnet-td{height:30px; border:1px solid #cad9ea;padding:0 1em 0;}',
+      '#magnet-tab table{margin:10px auto;color:#666 !important;font-size:13px;text-align:center;background-color: #F2F2F2;}',
+      '.magnet-th,.magnet-td{text-align: center;height:30px;background-color: #FFF;padding:0 1em 0;border: 1px solid #EFEFEF;}',
       '.magnet-copy{color:#08c !important;}',
       '.offline-div{text-align: center;}',
       '.magnet-download{color: rgb(0, 180, 30) !important;margin-right: 4px;}',
@@ -582,7 +582,7 @@ var reg_event = function() {
 var main = {
   //av信息查询 类
   javhip_avmask_avmemo: {
-    re: /(javhip|avmask|avmemo).*movie.*/,
+    re: /(javtag|avmask|avmemo).*movie.*/,
     vid: function() {
       return $('.header')[0].nextElementSibling.innerHTML;
     },
@@ -591,7 +591,7 @@ var main = {
     }
   },
   javlibrary: {
-    re: /javlibrary.*\?v=.*/,
+    re: /jav2lib.*\?v=.*/,
     vid: function() {
       return $('#video_id')[0].getElementsByClassName('text')[0].innerHTML;
     },
