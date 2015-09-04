@@ -25,7 +25,7 @@
 // @include     http://www.cilizhushou.com/search/*
 // @include     http://www.btava.com/*
 // @include     http://www.instsee.com/*
-// @version     1.22
+// @version     1.23
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
