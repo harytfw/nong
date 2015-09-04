@@ -25,7 +25,7 @@
 // @include     http://www.cilizhushou.com/search/*
 // @include     http://www.btava.com/*
 // @include     http://www.instsee.com/*
-// @version     1.20
+// @version     1.21
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -114,7 +114,7 @@ var $cs = function(selector, arg, context) {
 var $c = function(arg) {
   'use strict';
   var node = null;
-  if (typeof arg === 'object') {
+  if (arg instanceof Object) {
     if (arg.clone) {
       node = arg.clone.cloneNode(true);
     }
@@ -123,6 +123,11 @@ var $c = function(arg) {
     }
     else if (arg.tag) {
       node = document.createElement(arg.tag);
+    }
+    else if(arg.html){
+      var t = document.createElement(arg.html.match(/<(\w+)\s/)[1]);
+      t.outerHTML = arg.html;
+      node = t;
     }
     if (node) {
       if (arg.prop) {
@@ -173,24 +178,23 @@ var $c = function(arg) {
   }
   return node;
 };
-var getbdstoken = function() {
-  return 'c7766be96cc27fb4909bb4cdf99a2699';
-};
-
-var biadu_query_magnet = function(bdstoken, url) {
-  GM_xmlhttpRequest({
-    method: 'POST',
-    url: 'http://pan.baidu.com/rest/2.0/services/cloud_dl?bdstoken=' + bdstoken + '&channel=chunlei&clienttype=0&web=1&app_id=250528',
-    data: 'method=query_magnetinfo&app_id=250528&source_url=' + url + '&save_path=%2F&type=4',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    onload: function(response) {
-      console.log(response);
-      console.log(response.responseText);
-    }
-  });
-};
+// var getbdstoken = function() {
+//   return '...';
+// };
+// var biadu_query_magnet = function(bdstoken, url) {
+//   GM_xmlhttpRequest({
+//     method: 'POST',
+//     url: 'http://pan.baidu.com/rest/2.0/services/cloud_dl?bdstoken=' + bdstoken + '&channel=chunlei&clienttype=0&web=1&app_id=250528',
+//     data: 'method=query_magnetinfo&app_id=250528&source_url=' + url + '&save_path=%2F&type=4',
+//     headers: {
+//       'Content-Type': 'application/x-www-form-urlencoded'
+//     },
+//     onload: function(response) {
+//       console.log(response);
+//       console.log(response.responseText);
+//     }
+//   });
+// };
 
 var add_style = function(css) {
   if (css) {
@@ -267,6 +271,7 @@ var create_wrapper = function(data) {
               href: 'javascript:void(0);',
               title: '点击切换搜索结果',
               textContent: '标题',
+              css:'color:#4500e6',
             },
           })
         ]
@@ -341,9 +346,6 @@ var create_wrapper = function(data) {
   });
   var from_info = $c({
     tag: 'h4',
-    // prop: {
-    //   innerHTML: '来自<a id= \'magnet-href\' href=\'' + data.src + '\' target=\'_blank\' style=\'color: #FF10FF;\'>' + search_engine.latest().name + '</a>搜索结果:',
-    // },
     append: $c({
       tag: 'a',
       prop: {
@@ -351,7 +353,7 @@ var create_wrapper = function(data) {
         href: data.src,
         target: '_blank',
         css: 'color: #FF10FF;',
-        innerHTML: search_engine.latest().name,
+        innerHTML: '来自'+search_engine.latest().name,
       }
     }),
   });
@@ -386,25 +388,28 @@ var create_wrapper = function(data) {
   });
 };
 //---------end---------
-
 var search_engine = {
   latest: function() {
     return this.sites[this.index];
   },
   next: function() {
-    if (this.index > this.sites.length) {
-      this.index = 0;
+    if (this.index < this.sites.length - 1) {
+      this.index += 1;
     }
     else {
-      this.index += 1;
-
+      this.index = 0;
     }
     return this.sites[this.index];
   },
-  index: 2,
+  get_true_magnet: function(str) {
+    var t = document.createElement('a');
+    t.outerHTML = str.match(/document.write\(\'(.*)\'\)/)[1].split('\'+\'').join('');
+    return t.href;
+  },
+  index: 0,
   sites: [{
-    name: 'btava',
-    url: 'http://www.btava.com/search/',
+    name: 'bt2mag',
+    url: 'http://www.bt2mag.com/search/',
     s: function(kw, cb) {
       GM_xmlhttpRequest({
         method: 'GET',
@@ -417,11 +422,13 @@ var search_engine = {
           if (t) {
             var elems = t.getElementsByTagName('a');
             for (var i = 0; i < elems.length; i++) {
-              list.push({
-                'title': elems[i].title,
-                'magnet': 'magnet:?xt=urn:btih:' + elems[i].href.replace(/.*hash\//, ''),
-                'size': elems[i].nextElementSibling.textContent
-              });
+              if (!elems[i].className.match('btn')) {
+                list.push({
+                  'title': elems[i].title,
+                  'magnet': 'magnet:?xt=urn:btih:' + elems[i].href.replace(/.*hash\//, ''),
+                  'size': elems[i].nextElementSibling.textContent
+                });
+              }
             }
             cb({
               src: result.finalUrl,
@@ -460,10 +467,9 @@ var search_engine = {
           if (t) {
             var elems = t.getElementsByClassName('item-title');
             for (var i = 0; i < elems.length; i++) {
-              console.log(elems[i].nextElementSibling)
               list.push({
-                'title': elems[i].getElementsByTagName('a')[0].textContent, //need debug
-                'magnet': elems[i].nextElementSibling.getElementsByTagName('a')[0].href,
+                'title': elems[i].getElementsByTagName('a')[0].textContent,
+                'magnet': search_engine.get_true_magnet(elems[i].nextElementSibling.getElementsByTagName('script')[0].innerHTML),
                 'size': elems[i].nextElementSibling.getElementsByTagName('b')[1].textContent
               });
             }
@@ -561,7 +567,7 @@ var reg_event = function() {
     event: {
       type: 'click',
       listener: function() {
-        var tab = $cs('#magnet-tab');
+        var tab = $('#magnet-tab')[0];
         if (tab) {
           tab.parentElement.removeChild(tab);
           search_engine.next().s(main[extern_key].vid(), function(data) {
@@ -801,7 +807,7 @@ var main = {
 
   // },
 
-  shousibaocai_multiple: {
+  cilizhushou_multiple: {
     re: /cilizhushou/,
     func: function(div) {
       $xafter('.tail', div, function(elem) {
@@ -845,7 +851,7 @@ var run = function() {
         search_engine.latest().s(main[key].vid(), function(data) {
           main[key].proc(create_wrapper(data));
           reg_event();
-          if (0) {
+          if (false) {
             var bdstoken = GM_getValue('bdstoken')
             if (bdstoken == '') {
               bdstoken = getbdstoken()
@@ -853,7 +859,6 @@ var run = function() {
             }
             biadu_query_magnet();
           }
-
         });
       }
       else if (main[key].func) {
