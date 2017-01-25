@@ -650,5 +650,7 @@ let set_max_title_length = function () {
 
 GM_registerMenuCommand("挊--设置最大标题长度", set_max_title_length);
 
-run();
+run();;
+
+
 
