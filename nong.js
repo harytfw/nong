@@ -2,731 +2,186 @@
 // @name        挊
 // @namespace   撸
 // @description 自动获取磁链接并自动离线下载
-// @include     http://www.javtag.com/*
-// @include     http://www.avmask.net/*
-// @include     http://www.avmemo.com/*
-// @include     http://www.jav2lib.com/*
-// @include     http://www.libredmm.com/products/*
-// @include     http://www.dmm.co.jp/digital/videoa/*
-// @include     http://www.minnano-av.com/av*
-// @include     http://www.oisinbosoft.com/dera/*
-// @include     http://www.javbus.co/*
-// @include     http://avdb.la/movie/*
-// @include     http://www.141jav.com/view/*
-// @include     http://www.av4you.net/work/*.htm
-// @include     http://pan.baidu.com/disk/home
-// @include     http://115.com/?tab=offline&mode=wangpan
-// @include     http://cloud.letv.com/webdisk/home/index
-// @include     http://disk.yun.uc.cn/
-// @include     https://www.furk.net/users/files/add
+
+// @include     http*://avmo.pw/*
+// @include     http*://avso.pw/*
+// @include     http*://avxo.pw/*
+
+// @include     http*://*javlibrary.com/*
+// @include     http*://*5avlib.com/*
+// @include     http*://*look4lib.com/*
+// @include     http*://*javlib3.com/*
+// @include     http*://*javli6.com/*
+// @include     http*://*j8vlib.com/*
+// @include     http*://*j9lib.com/*
+// @include     http*://*javl10.com/*
+
+
+// @include     http*://www.libredmm.com/products/*
+// @include     http*://www.javbus.com/*
+// @include     http*://www.javbus.me/*
+// @include     http*://www.javbus2.com/*
+// @include     http*://www.javbus3.com/*
+// @include     http*://www.javbus5.com/*
+// @include     http*://*j8vlib.com/*
+
+// @include     http*://www.icpmp.com/fanhao/*.html
+
+// @include     http*://avdb.la/movie/*
+// @include     http*://www.141jav.com/view/*
+// @include     http*://www.av4you.net/work/*.htm
+// @include     http*://www.dmmy18.com/*
+
+// @include     http*://pan.baidu.com/disk/home*
+// @include     http*://115.com/?tab=offline&mode=wangpan
+// @include     http*://cloud.letv.com/webdisk/home/index
+// @include     http*://disk.yun.uc.cn/
+// @include     http*://www.furk.net/users/files/add
 // @include     *.yunpan.360.cn/my/
-// @include     http://www.btcherry.net/*
+// @include     http://www.dmm.co.jp/digital/videoa/*
+// @include     http://www.btcherry.org/*
 // @include     https://btdigg.org/search*
-// @include     http://www.cilizhushou.com/search/*
-// @include     http://www.btava.com/*
-// @include     http://www.instsee.com/*
-// @version     1.23
+
+// @version     1.39
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       GM_addStyle
+// @grant       GM_registerMenuCommand
 // ==/UserScript==
+//www.minnano-av.com
 
-var sites = {
-  baidu: {
-    url: 'http://pan.baidu.com/disk/home',
-    name: '百度云',
-    enable: true
-  },
-  115: {
-    name: '115离线',
-    url: 'http://115.com/?tab=offline&mode=wangpan',
-    enable: true
-  },
-  letv: {
-    name: '乐视云',
-    url: 'http://cloud.letv.com/webdisk/home/index',
-    enable: false
-  },
-  360: {
-    name: '360云',
-    url: 'http://yunpan.360.cn/my/',
-    enable: true
-  },
-  uc: {
-    name: 'UC离线',
-    url: 'http://disk.yun.uc.cn/',
-    enable: true
-  },
-  furk: {
-    name: 'Furk',
-    url: 'https://www.furk.net/users/files/add',
-    enable: false
-  },
-};
-
-
-var $ = function(selector) {
-  return document.querySelectorAll(selector);
-};
-
-var $after = function(target, newnode) {
-  target.parentElement.insertBefore(newnode, target.nextElementSibling);
-};
-var $xafter = function(selector, target, func) {
-  var result = document.querySelectorAll(selector);
-  //isdeep 是否克隆子元素
-  var tmp = null;
-  for (var i = 0; i < result.length; i++) {
-    tmp = target.cloneNode(true);
-    if (result[i].nextElementSibling === null) {
-      result[i].parentElement.appendChild(tmp);
-    }
-    else {
-      result[i].parentElement.insertBefore(tmp, result[i].nextElementSibling);
-    }
-    tmp.setAttribute('data', func(result[i]));
-  }
-};
-
-var $cs = function(selector, arg, context) {
-  'use strict';
-  var q = null;
-  if (context) {
-    q = context.querySelectorAll(selector);
-  }
-  else {
-    q = document.querySelectorAll(selector);
-  }
-  var r = [];
-  for (var i = 0; i < q.length; i++) {
-    r.push($c({
-      self: q[i],
-      prop: arg.prop,
-      event: arg.event,
-    }));
-  }
-  return r;
-};
-
-var $c = function(arg) {
-  'use strict';
-  var node = null;
-  if (arg instanceof Object) {
-    if (arg.clone) {
-      node = arg.clone.cloneNode(true);
-    }
-    else if (arg.self) {
-      node = arg.self;
-    }
-    else if (arg.tag) {
-      node = document.createElement(arg.tag);
-    }
-    else if(arg.html){
-      var t = document.createElement(arg.html.match(/<(\w+)\s/)[1]);
-      t.outerHTML = arg.html;
-      node = t;
-    }
-    if (node) {
-      if (arg.prop) {
-        for (var attr in arg.prop) {
-          if (attr === 'css' || attr === 'style') {
-            node.setAttribute('style', arg.prop[attr]);
-          }
-          else if (attr === 'className') {
-            node.setAttribute('class', arg.prop[attr]);
-          }
-          else if (attr === 'textContent' || attr === 'innerHTML') {
-            node[attr] = arg.prop[attr];
-          }
-          else {
-            node.setAttribute(attr, arg.prop[attr]);
-          }
-        }
-      }
-      if (arg.event) {
-        if (arg.event instanceof Object) {
-          node.addEventListener(arg.event.type, arg.event.listener, false);
-        }
-        else if (arg.event instanceof Array) {
-          agr.event.forEach(function(e) {
-            node.addEventListener(e.type, e.listener, false);
-          });
-        }
-      }
-      if (arg.append) {
-        if (arg.append instanceof Array) {
-          arg.append.forEach(function(v) {
-            if (v instanceof HTMLElement) {
-              node.appendChild(v);
-            }
-            else if (v instanceof Object) {
-              node.appendChild($c(v))
-            }
-          });
-        }
-        else if (arg.append instanceof HTMLElement) {
-          node.appendChild(arg.append)
-        }
-        else if (arg.append instanceof Object) {
-          node.appendChild($c(arg.append))
-        }
-      }
-    }
-  }
-  return node;
-};
-// var getbdstoken = function() {
-//   return '...';
-// };
-// var biadu_query_magnet = function(bdstoken, url) {
-//   GM_xmlhttpRequest({
-//     method: 'POST',
-//     url: 'http://pan.baidu.com/rest/2.0/services/cloud_dl?bdstoken=' + bdstoken + '&channel=chunlei&clienttype=0&web=1&app_id=250528',
-//     data: 'method=query_magnetinfo&app_id=250528&source_url=' + url + '&save_path=%2F&type=4',
-//     headers: {
-//       'Content-Type': 'application/x-www-form-urlencoded'
-//     },
-//     onload: function(response) {
-//       console.log(response);
-//       console.log(response.responseText);
-//     }
-//   });
-// };
-
-var add_style = function(css) {
-  if (css) {
-    GM_addStyle(css);
-  }
-  else {
-    GM_addStyle([
-      '#magnet-tab{text-align: center ;}',
-      '#magnet-tab table{margin:10px auto;color:#666 !important;font-size:13px;text-align:center;background-color: #F2F2F2;}',
-      '.magnet-th,.magnet-td{text-align: center;height:30px;background-color: #FFF;padding:0 1em 0;border: 1px solid #EFEFEF;}',
-      '.magnet-copy{color:#08c !important;}',
-      '.offline-div{text-align: center;}',
-      '.magnet-download{color: rgb(0, 180, 30) !important;margin-right: 4px;}',
-      '.magnet-download:hover{color:red !important;}',
-    ].join(''));
-  }
-};
-
-//------------
-var sites_table = function(parent, child) {
-  for (var key in sites) {
-    if (sites[key].enable === false) {
-      continue;
-    }
-    parent = $c({
-      self: parent,
-      append: [{
-        clone: child,
-        prop: {
-          href: sites[key].url,
-          textContent: sites[key].name,
-        },
-      }],
-    });
-  }
-  return parent;
-};
-
-var simple_offline_table = function(callback) {
-  var link = $c({
-    tag: 'a',
-    prop: {
-      className: 'magnet-download',
-      target: '_blank',
-    }
-  });
-  var w = sites_table(document.createElement('div'), link);
-  callback($c({
-    self: w,
-    prop: {
-      className: 'offline-div',
-    },
-  }));
-};
-//---------start---------
-var create_wrapper = function(data) {
-  //---------start---------
-  var create_table_th = function() {
-    var th = $c({
-      tag: 'th',
-      prop: {
-        className: 'magnet-th',
-      }
-    });
-    var tr = $c({
-      tag: 'tr',
-      append: [{
-        clone: th,
-        append: [
-          $c({
-            tag: 'a',
-            prop: {
-              id: 'switch-engine',
-              href: 'javascript:void(0);',
-              title: '点击切换搜索结果',
-              textContent: '标题',
-              css:'color:#4500e6',
-            },
-          })
-        ]
-      }],
-    });
-    ['大小', '操作', '离线下载'].forEach(function(s) {
-      tr = $c({
-        self: tr,
-        append: [{
-          clone: th,
-          prop: {
-            textContent: s,
-          },
-        }, ],
-      });
-    });
-    return tr;
-  };
-  //---------end---------
-  //---------start---------
-  var create_table_td = function(info) {
-    var td = $c({
-      tag: 'td',
-      prop: {
-        className: 'magnet-td',
-      }
-    });
-    return $c({
-      tag: 'tr',
-      append: [{
-        clone: td,
-        prop: {
-          title: info.title,
-          textContent: info.title.length > 30 ? info.title.slice(0, 30) + '...' : info.title,
-        },
-      }, {
-        clone: td,
-        prop: {
-          textContent: info.size
-        },
-      }, {
-        clone: td,
-        append: [{
-          tag: 'a',
-          prop: {
-            className: 'magnet-copy',
-            textContent: '复制',
-            href: info.magnet,
-          }
-        }, ]
-      }, {
-        self: sites_table($c({
-          clone: td,
-          prop: {
-            data: info.magnet,
-          },
-        }), $c({
-          tag: 'a',
-          prop: {
-            className: 'magnet-download',
-            target: '_blank',
-          }
-        })),
-      }, ],
-    });
-  };
-  //---------end---------
-  //---------start---------
-  var table = $c({
-    tag: 'table',
-    append: [create_table_th()]
-  });
-  var from_info = $c({
-    tag: 'h4',
-    append: $c({
-      tag: 'a',
-      prop: {
-        id: 'magnet-href',
-        href: data.src,
-        target: '_blank',
-        css: 'color: #FF10FF;',
-        innerHTML: '来自'+search_engine.latest().name,
-      }
-    }),
-  });
-  if (data.info.length) {
-    data.info.forEach(function(d) {
-      table = $c({
-        self: table,
-        append: [create_table_td(d)],
-      });
-    });
-  }
-  else {
-    table = $c({
-      self: table,
-      append: [{
-        tag: 'p',
-        prop: {
-          textContent: '没有找到...',
-        }
-      }],
-    });
-  }
-  return $c({
-    tag: 'div',
-    prop: {
-      id: 'magnet-tab',
-    },
-    append: [
-      from_info,
-      table,
-    ],
-  });
-};
-//---------end---------
-var search_engine = {
-  latest: function() {
-    return this.sites[this.index];
-  },
-  next: function() {
-    if (this.index < this.sites.length - 1) {
-      this.index += 1;
-    }
-    else {
-      this.index = 0;
-    }
-    return this.sites[this.index];
-  },
-  get_true_magnet: function(str) {
-    var t = document.createElement('a');
-    t.outerHTML = str.match(/document.write\(\'(.*)\'\)/)[1].split('\'+\'').join('');
-    return t.href;
-  },
-  index: 0,
-  sites: [{
-    name: 'bt2mag',
-    url: 'http://www.bt2mag.com/search/',
-    s: function(kw, cb) {
-      GM_xmlhttpRequest({
-        method: 'GET',
-        url: this.url + kw,
-        onload: function(result) {
-          var doc = document.implementation.createHTMLDocument('');
-          doc.documentElement.innerHTML = result.responseText;
-          var list = [];
-          var t = doc.getElementsByClassName('data-list')[0];
-          if (t) {
-            var elems = t.getElementsByTagName('a');
-            for (var i = 0; i < elems.length; i++) {
-              if (!elems[i].className.match('btn')) {
-                list.push({
-                  'title': elems[i].title,
-                  'magnet': 'magnet:?xt=urn:btih:' + elems[i].href.replace(/.*hash\//, ''),
-                  'size': elems[i].nextElementSibling.textContent
-                });
-              }
-            }
-            cb({
-              src: result.finalUrl,
-              info: list
-            });
-          }
-          else {
-            cb({
-              src: result.finalUrl,
-              info: []
-            });
-          }
-        },
-        onerror: function(e) {
-          console.log(e);
-        }
-      });
-    }
-  }, {
-    name: 'diggbt',
-    url: 'http://diggbt.net/',
-    s: function(kw, cb) {
-      GM_xmlhttpRequest({
-        method: 'POST',
-        url: this.url,
-        data: 's=' + kw,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        onload: function(result) {
-          finalurl = result.finalUrl;
-          var doc = document.implementation.createHTMLDocument('');
-          doc.documentElement.innerHTML = result.responseText;
-          var list = [];
-          var t = doc.getElementsByClassName('list-con')[0];
-          if (t) {
-            var elems = t.getElementsByClassName('item-title');
-            for (var i = 0; i < elems.length; i++) {
-              list.push({
-                'title': elems[i].getElementsByTagName('a')[0].textContent,
-                'magnet': search_engine.get_true_magnet(elems[i].nextElementSibling.getElementsByTagName('script')[0].innerHTML),
-                'size': elems[i].nextElementSibling.getElementsByTagName('b')[1].textContent
-              });
-            }
-            cb({
-              src: result.finalUrl,
-              info: list
-            });
-          }
-          else {
-            cb({
-              src: result.finalUrl,
-              info: []
-            });
-          }
-        },
-        onerror: function(e) {
-          console.log(e);
-        }
-      });
-    }
-  }, {
-    name: 'btlibrary',
-    url: 'http://btlibrary.org/',
-    s: function(kw, cb) {
-      GM_xmlhttpRequest({
-        method: 'POST',
-        url: this.url,
-        data: 's=' + kw,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        onload: function(result) {
-          var doc = document.implementation.createHTMLDocument('');
-          doc.documentElement.innerHTML = result.responseText;
-          var list = [];
-          var t = doc.getElementsByClassName('list-content')[0];
-          if (t) {
-            var elems = t.getElementsByClassName('item-title');
-            for (var i = 0; i < elems.length; i++) {
-              list.push({
-                'title': elems[i].getElementsByTagName('a')[0].textContent,
-                'magnet': elems[i].nextElementSibling.getElementsByTagName('a')[0].href,
-                'size': elems[i].nextElementSibling.getElementsByTagName('b')[1].textContent
-              });
-            }
-            cb({
-              src: result.finalUrl,
-              info: list
-            });
-          }
-          else {
-            cb({
-              src: result.finalUrl,
-              info: []
-            });
-          }
-        },
-        onerror: function(e) {
-          console.log(e);
-        }
-      });
-    }
-  }],
-};
-var updata_table = function() {
-  // body...
-};
-var handle_event = function(event) {
-  if (event.target.className == 'magnet-copy') {
-    event.target.innerHTML = '成功';
-    GM_setClipboard(event.target.href);
-    setTimeout(function() {
-      event.target.innerHTML = '复制';
-    }, 1000);
-    event.preventDefault(); //阻止跳转
-  }
-  else if (event.target.className == 'magnet-download') {
-    GM_setValue('magnet', event.target.parentElement.getAttribute('data'));
-  }
-};
-var reg_event = function() {
-  $cs('.magnet-copy', {
-    event: {
-      type: 'click',
-      listener: handle_event
-    }
-  });
-  $cs('.magnet-download', {
-    event: {
-      type: 'click',
-      listener: handle_event
-    }
-  });
-  $cs('#switch-engine', {
-    event: {
-      type: 'click',
-      listener: function() {
-        var tab = $('#magnet-tab')[0];
-        if (tab) {
-          tab.parentElement.removeChild(tab);
-          search_engine.next().s(main[extern_key].vid(), function(data) {
-            main[extern_key].proc(create_wrapper(data));
-            reg_event();
-          });
-        }
-      }
-    }
-  });
-};
-var main = {
+let max_title_length = GM_getValue("max_title_length", 100);
+let main = {
   //av信息查询 类
-  javhip_avmask_avmemo: {
-    re: /(javtag|avmask|avmemo).*movie.*/,
-    vid: function() {
-      return $('.header')[0].nextElementSibling.innerHTML;
-    },
-    proc: function(wrapper) {
-      $after($('#movie-share')[0], wrapper);
+  jav: {
+    type: 0,
+    re: /(avmo|avso|avxo).*movie.*/,
+    insert_where: "#movie-share",
+    vid: function () {
+      return $(".header")[0].nextElementSibling.innerHTML;
     }
   },
   javlibrary: {
-    re: /jav2lib.*\?v=.*/,
-    vid: function() {
-      return $('#video_id')[0].getElementsByClassName('text')[0].innerHTML;
-    },
-    proc: function(wrapper) {
-      $after($('#video_favorite_edit')[0], wrapper);
+    type: 0,
+    re: /(javlibrary|javlib3|look4lib|5avlib|javli6|j8vlib|j9lib|javl10).*\?v=.*/,
+    insert_where: "#video_favorite_edit",
+    vid: function () {
+      return $("#video_id")[0].getElementsByClassName("text")[0].innerHTML;
+    }
+  },
+  javbus: {
+    type: 0,
+    re: /javbus/,
+    insert_where: "#star-div",
+    vid: function () {
+      let a = $(".header")[0].nextElementSibling;
+      return a ? a.textContent : "";
+    }
+  },
+  fanhaoku: {
+    type: 0,
+    re: /icpmp/,
+    insert_where: "div.mod_film:nth-child(8)",
+    vid: function () {
+      return document.querySelector(".title_inner").title;
     }
   },
   libredmm: {
+    type: 0,
     re: /libredmm/,
-    vid: function() {
+    insert_where: ".container",
+    vid: function () {
       return location.href.match(/products\/(.*)/)[1];
-    },
-    proc: function(wrapper) {
-      $after($('.container')[0], wrapper);
     }
   },
   dmm: {
+    type: 0,
     re: /dmm\.co\.jp/,
-    vid: function() {
-      var result = location.href.replace(/.*cid=/, '').replace(/\/\??.*/, '').match(/[^h_0-9].*/);
-      return result[0] ? result[0].replace('00', '') : '';
-    },
-    proc: function(wrapper) {
-      $after($('.lh4')[0], wrapper);
+    insert_where: ".lh4",
+    vid: function () {
+      let result = location.href.replace(/.*cid=/, "").replace(/\/\??.*/, "").match(/[^h_0-9].*/);
+      return result[0] ? result[0].replace("00", "") : "";
     }
   },
+  /*
   minnano: {
+    type: 0,
     re: /minnano-av/,
-    vid: function() {
-      var elems = $('.t11');
-      var r = '';
-      for (var i = 0; i < elems.length; i++) {
-        if (elems[i].textContent == '品番') {
-          r = elems[i].nextElementSibling.textContent;
+    insert_where: "",
+    vid: function () {
+      let r = "";
+      for (let elem of document.querySelectorAll(".t11")) {
+        if (elem.textContent == "品番") {
+          r = elem.nextElementSibling.textContent;
           break;
         }
       }
       return r;
     },
-    proc: function(wrapper) {
-      var tmp = (function() {
-        var a = $('table');
-        for (var i = 0; i < a.length; i++) {
-          if (a[i].bgColor == '#EEEEEE') {
-            return a[i];
+    proc: function (tab) {
+      let tmp = (function () {
+        for (let a of document.querySelectorAll("table")) {
+          if (a.bgColor == "#EEEEEE") {
+            return a;
           }
         }
       })();
-      $after(tmp, wrapper);
+      insert_after(tmp);
     }
   },
   oisinbosoft: {
+    type: 0,
     re: /oisinbosoft/,
-    vid: function() {
-      var r = location.pathname.replace(/.*\/+/, '').replace('.html', '');
-      return r.indexOf('-') == r.lastIndexOf('-') ? r : r.replace(/\w*-?/, '');
-    },
-    proc: function(wrapper) {
-      add_style('#magnet-tab table{clear:both;}');
-      $after($('#detail_info')[0], wrapper);
+    insert_where: "#detail_info",
+    vid: function () {
+      let r = location.pathname.replace(/.*\/+/, "").replace(".html", "");
+      return r.indexOf("-") == r.lastIndexOf("-") ? r : r.replace(/\w*-?/, "");
     }
   },
-  javbus: {
-    re: /javbus/,
-    vid: function() {
-      var result = $('.movie-code');
-      return result ? result[0].textContent : '';
-    },
-    proc: function(wrapper) {
-      $after($('.movie')[0].parentElement, wrapper);
-    }
-  },
+
   avdb: {
+    type: 0,
     re: /avdb\.la/,
-    vid: function() {
-      return $('.info')[0].firstElementChild.innerHTML.replace(/<.*>/, '').trim();
+    insert_where: "#downs",
+    vid: function () {
+      return $(".info")[0].firstElementChild.innerHTML.replace(/<.*>/, "").trim();
     },
-    proc: function(wrapper) {
-      wrapper.className = 'movie';
-      $after($('#downs')[0].previousElementSibling, wrapper);
+    proc: function (tab) {
+      insert_after($("#downs")[0].previousElementSibling);
     }
   },
-  jav141: {
-    re: /141jav/,
-    vid: function() {
-      return location.href.match(/view\/(.*)\//)[1];
-    },
-    proc: function(wrapper) {
-      $after($('.dlbtn')[0].previousElementSibling, wrapper);
-    },
-  },
-  av4you: {
-    re: /av4you/,
-    vid: function() {
-      return $('.star-detail-name')[0].textContent.trim();
-    },
-    proc: function(wrapper) {
-      $after($('.star-detail')[0], wrapper);
-    }
-  },
-  instsee_single: {
-    re: /instsee\.com\/details\.aspx\?id=.*/,
-    vid: function() {
-      return $('.info li')[0].textContent.replace('番号：', '');
-    },
-    proc: function(wrapper) {
-      $after($('.head_coverbanner')[0], wrapper);
-    },
-  },
+  */
+
   //网盘下载 类
   //这些 $ 是真正的 jquery
   baidu: {
+    type: 1,
     re: /pan\.baidu\.com/,
-    fill_form: function(magnet) {
-      $('.icon-btn-download')[0].click();
-      setTimeout(function() {
-        $('.create-normal-button')[0].click();
-        $('#share-offline-link').val(magnet);
-        $('.dlg-ft .sbtn')[0].click();
-        setTimeout(function() {
-          $('.btlist-bottom .sbtn')[0].click();
-        }, 3000);
-      }, 1000);
+    fill_form: function (magnet) {
+      document.querySelector(".g-button[data-button-id=b13]").click();
+      setTimeout(function () {
+        document.querySelector("#_disk_id_2").click();
+        setTimeout(function () {
+          document.querySelector("#share-offline-link").value = magnet;
+          document.querySelector(".g-button[data-button-id=b65]").click();
+        }, 500);
+      }, 1500);
     }
   },
   115: {
+    type: 1,
     re: /115\.com/,
-    fill_form: function(link) {
-      var rsc = setInterval(function() {
-        if (document.readyState == 'complete') {
+    fill_form: function (link) {
+      let rsc = setInterval(function () {
+        if (document.readyState == "complete") {
           clearInterval(rsc);
-          setTimeout(function() {
-            Core['OFFL5Plug'].OpenLink();
-            setTimeout(function() {
-              $('#js_offline_new_add').val(link);
+          setTimeout(function () {
+            Core["OFFL5Plug"].OpenLink();
+            setTimeout(function () {
+              $("#js_offline_new_add").val(link);
             }, 300);
           }, 1000);
         }
@@ -734,166 +189,466 @@ var main = {
     }
   },
   letv: {
+    type: 1,
     re: /cloud\.letv\.com/,
-    fill_form: function(link) {
-      setTimeout(function() {
-        $('#offline-btn').click();
-        setTimeout(function() {
-          $('#offline_clear_complete').prev().click();
-          setTimeout(function() {
-            $('#offline-add-link').val(link);
+    fill_form: function (link) {
+      setTimeout(function () {
+        $("#offline-btn").click();
+        setTimeout(function () {
+          $("#offline_clear_complete").prev().click();
+          setTimeout(function () {
+            $("#offline-add-link").val(link);
           }, 500);
         }, 1000);
       }, 2000);
     }
   },
   furk: {
+    type: 1,
     re: /www\.furk\.net/,
-    fill_form: function(link) {
-      setTimeout(function() {
-        $('#url').val(link.replace('magnet:?xt=urn:btih:', ''));
+    fill_form: function (link) {
+      setTimeout(function () {
+        $("#url").val(link.replace("magnet:?xt=urn:btih:", ""));
       }, 1500);
     }
   },
   360: {
+    type: 1,
     re: /yunpan\.360\.cn\/my/,
-    fill_form: function(link) {
+    fill_form: function (link) {
       yunpan.cmdCenter.showOfflineDia();
-      setTimeout(function() {
-        $('.offdl-btn-create').click();
-        setTimeout(function() {
-          $('#offdlUrl').val(link);
+      setTimeout(function () {
+        $(".offdl-btn-create").click();
+        setTimeout(function () {
+          $("#offdlUrl").val(link);
         }, 500);
       }, 1000);
     }
   },
   uc: {
+    type: 1,
     re: /disk\.yun\.uc\.cn\//,
-    fill_form: function(link) {
-      setTimeout(function() {
-        $('#newuclxbtn_index').click();
-        setTimeout(function() {
-          $('#uclxurl').val(link);
+    fill_form: function (link) {
+      setTimeout(function () {
+        $("#newuclxbtn_index").click();
+        setTimeout(function () {
+          $("#uclxurl").val(link);
         }, 1000);
       }, 1200);
     }
   },
-  //磁链接搜索 类
-  btcherry_multiple: {
-    re: /btcherry\.net\/search\?keyword=.*/,
-    func: function(div) {
-      $xafter('.r div a', div, function(elem) {
-        //elem 等于 document.querySelectorAll(.r div a)的成员
-        return elem.href;
-      });
-    },
-  },
-  btcherry_single: {
-    re: /btcherry\.net\/t\/.*/,
-    func: function(div) {
-      div.setAttribute('data', $('#content ul a')[0].href);
-      $after($('#content h1')[0], div);
-    },
-  },
-  btdigg_multiple: {
-    re: /btdigg/,
-    func: function(div) {
-      $xafter('.snippet', div, function(elem) {
-        return elem.parentElement.getElementsByClassName('ttth')[0].firstElementChild.href;
-      });
-    },
-  },
-  // btdigg_single: {
-
-  // },
-
-  cilizhushou_multiple: {
-    re: /cilizhushou/,
-    func: function(div) {
-      $xafter('.tail', div, function(elem) {
-        return elem.getElementsByTagName('a')[0].href;
-      });
-    },
-  },
-  // shousibaocai_single: {
-  //   re: '',
-  //   func: '',
-  // },
-  btava_multiple: {
-    re: /search\//,
-    func: function(div) {
-      $xafter('.data-list .date', div, function(elem) {
-        return 'magnet:?xt=urn:btih:' + elem.parentElement.getElementsByTagName('a')[0].href.match(/hash\/(.*)/)[1];
-      });
-    },
-  },
-  btava_single: {
-    re: /magnet\/detail\/hash\//,
-    func: function(div) {
-      div.setAttribute('data', $('#magnetLink')[0].value);
-      $after($('#magnetLink')[0], div);
-    },
-  },
-  // instsee_multiple:{
-  //   re: /^http:\/\/www\.instsee.com\/$|instsee\.com\/default.aspx.*/,
-  //   func: function(div){
-  //   }
-  // },
 
 };
-var extern_key = ''; //store matched key of main
-var run = function() {
-  for (var key in main) {
-    if (main[key].re.test(location.href)) {
-      extern_key = key; //.....
-      if (main[key].vid) {
-        add_style();
-        search_engine.latest().s(main[key].vid(), function(data) {
-          main[key].proc(create_wrapper(data));
-          reg_event();
-          if (false) {
-            var bdstoken = GM_getValue('bdstoken')
-            if (bdstoken == '') {
-              bdstoken = getbdstoken()
-              GM_setValue('bdstoken', bdstoken);
+let main_keys = Object.keys(main); //下面的不要出现
+main.cur_tab = null;
+main.cur_vid = "";
+let $ = function (selector, context) {
+  if (context) {
+    return context.querySelectorAll(selector);
+  }
+  return document.querySelectorAll(selector);
+};
+let insert_after = function (b) {
+  b = $(b)[0];
+  if (b) {
+    b.parentElement.insertBefore(main.cur_tab, b);
+  }
+  else {
+    console.error(location, "没有正确插入表格", b);
+  }
+};
+
+
+let offline_sites = {
+  baidu: {
+    url: "http://pan.baidu.com/disk/home",
+    name: "百度云",
+    enable: true
+  },
+  115: {
+    name: "115离线",
+    url: "http://115.com/?tab=offline&mode=wangpan",
+    enable: true,
+  },
+  letv: {
+    name: "乐视云",
+    url: "http://cloud.letv.com/webdisk/home/index",
+    enable: false
+  },
+  360: {
+    name: "360云",
+    url: "http://yunpan.360.cn/my/",
+    enable: false
+  },
+  uc: {
+    name: "UC离线",
+    url: "http://disk.yun.uc.cn/",
+    enable: false
+  },
+  furk: {
+    name: "Furk",
+    url: "https://www.furk.net/users/files/add",
+    enable: true
+  },
+};
+let common = {
+  add_style: function (css) {
+    if (css) {
+      GM_addStyle(css);
+    }
+    else {
+      GM_addStyle([
+        "#nong-table{border-collapse: initial !important;background-color: white !important;text-align: center !important;margin:10px auto;color:#666 !important;font-size:13px;text-align:center !important;border: 1px solid #cfcfcf !important;border-radius: 10px !important;}",
+        "#nong-table a {margin-right: 5px !important;color:blue}",
+        "#nong-table a:hover {color:#d20f00 !important;}",
+        "#nong-table th,#nong-table td{text-align: inherit !important;height:30px;padding:0 1em 0 !important;}",
+        ".nong-row{text-align: inherit !important;height:30px;padding:0 1em 0 !important;border: 1px solid #EFEFEF !important;}",
+        ".nong-row:hover{background-color: #dae8ff !important;}",
+        ".nong-offline-download{color: rgb(0, 180, 30) !important;}",
+        ".nong-offline-download:hover{color:red !important;}",
+      ].join(""));
+    }
+  },
+  handle_copy_event: function (event) {
+    event.target.innerHTML = "成功";
+    GM_setClipboard(event.target.href);
+    setTimeout(function () {
+      event.target.innerHTML = "复制";
+    }, 1000);
+    event.preventDefault(); //阻止跳转
+  },
+  handle_dl_event: function (event) {
+    let mag = event.target.parentElement.parentElement.getAttribute("mag");
+    GM_setValue("magnet", mag);
+  },
+
+  reg_event: function () {
+    let selector_event_map = [[".nong-copy", this.handle_copy_event], [".nong-offline-download", this.handle_dl_event]];
+    for (let [selector, event] of selector_event_map) {
+      for (let elem of document.querySelectorAll(selector)) {
+        elem.addEventListener("click", event);
+      }
+    }
+  },
+  parsetext: function (text) {
+    let doc = null;
+    try {
+      doc = document.implementation.createHTMLDocument("");
+      doc.documentElement.innerHTML = text;
+      return doc;
+    }
+    catch (e) {
+      alert("parse error");
+    }
+  },
+};
+let magnet_table = {
+  template: {
+    create_head: function (src) {
+      let a = document.createElement("tr");
+      a.className = "nong-row";
+      a.id = "nong-head";
+      let head_str = [
+        "大小",
+        "操作",
+        "离线下载"
+      ];
+      let th_list = [document.createElement("th"), document.createElement("th"), document.createElement("th"), document.createElement("th")];
+
+      let select_box = document.createElement("select");
+      let option_str = my_search.search_name_string;
+      //console.log("get", GM_getValue("search_index"));
+      let index = GM_getValue("search_index", 0);
+      let op_value = 0;
+      for (let str of option_str) {
+        let op = document.createElement("option");
+        op.value = op_value;
+        op.textContent = str;
+        if (index == op_value) {
+          op.setAttribute("selected", "selected");
+        }
+        op_value++;
+        select_box.appendChild(op);
+      }
+      select_box.addEventListener("change", function (e) {
+        GM_setValue("search_index", this.value);
+        let table = document.querySelector("#nong-table");
+        table.parentElement.removeChild(table);
+        run();
+      });
+      th_list[0].appendChild(select_box);
+
+      th_list[1].appendChild(document.createElement("a"));
+      th_list[1].lastChild.setAttribute("href", src);
+      th_list[1].lastChild.textContent = head_str[0];
+
+      th_list[2].appendChild(document.createElement("a"));
+      th_list[2].lastChild.textContent = head_str[1];
+
+      th_list[3].appendChild(document.createElement("a"));
+      th_list[3].lastChild.textContent = head_str[2];
+
+      for (let th of th_list) {
+        a.appendChild(th);
+      }
+      return a;
+    },
+    create_row: function (data) {
+      let tr = document.createElement("tr");
+      tr.className = "nong-row";
+      tr.setAttribute("mag", data.mag);
+      let td = document.createElement("td");
+      for (let elem of [this.create_info(data.title, data.mag), this.create_size(data.size, data.src), this.create_operation(data.mag), this.create_offline()]) {
+        let c = td.cloneNode(true);
+        c.appendChild(elem);
+        tr.appendChild(c);
+      }
+      return tr;
+    },
+
+    create_info: function (title, mag) {
+      let a = this.info.cloneNode(true);
+      a.firstChild.textContent = title.length < max_title_length ? title : title.substr(0, max_title_length) + "...";
+      a.firstChild.href = mag;
+      a.title = title;
+      return a;
+    },
+    create_size: function (size, src) {
+      let a = this.size.cloneNode(true);
+      a.textContent = size;
+      a.href = src;
+      return a;
+    },
+    create_operation: function (mag) {
+      let a = this.operation.cloneNode(true);
+      a.firstChild.href = mag;
+      return a;
+    },
+    create_offline: function () {
+      let a = this.offline.cloneNode(true);
+      a.className = "nong-offline";
+      return a;
+    },
+
+    info: (function () {
+      let a = document.createElement("div");
+      let b = document.createElement("a");
+      b.textContent = "name";
+      b.href = "src";
+      a.appendChild(b);
+      return a;
+    })(),
+    size: function () {
+      let a = document.createElement("a");
+      a.textContent = "size";
+      return a;
+    } (),
+    operation: (function () {
+      let a = document.createElement("div");
+      let copy = document.createElement("a");
+      copy.className = "nong-copy";
+      copy.textContent = "复制";
+      a.appendChild(copy);
+      return a;
+    })(),
+    offline: (function () {
+      let a = document.createElement("div");
+      let b = document.createElement("a");
+      b.className = "nong-offline-download";
+      b.target = "_blank";
+      for (let k in offline_sites) {
+        if (offline_sites[k].enable) {
+          let c = b.cloneNode(true);
+          c.href = offline_sites[k].url;
+          c.textContent = offline_sites[k].name;
+          a.appendChild(c);
+        }
+      }
+      return a;
+    })(),
+  },
+
+  generate: function (src, data) {
+    let tab = document.createElement("table");
+    tab.id = "nong-table";
+    if (data) {
+      tab.appendChild(this.template.create_head(src));
+      for (let d of data) {
+        tab.appendChild(this.template.create_row(d));
+      }
+    }
+    else {
+      //notice
+    }
+    return tab;
+  },
+
+};
+let my_search = {
+  current: function (kw, cb) {
+    let search = my_search[GM_getValue("search_index", 0)];
+    if (!search) {
+      alert("search engine not found");
+    }
+    return search(kw, cb);
+  },
+  search_name_string: ["btso", "btdb"],
+  0: function (kw, cb) {
+    GM_xmlhttpRequest({
+      method: "GET",
+      url: "https://btso.pw/search/" + kw,
+      onload: function (result) {
+        let doc = common.parsetext(result.responseText);
+        let data = [];
+        let t = doc.getElementsByClassName("data-list")[0];
+        if (t) {
+          for (let elem of t.getElementsByTagName("a")) {
+            if (!elem.className.match("btn")) {
+              data.push({
+                "title": elem.title,
+                "mag": "magnet:?xt=urn:btih:" + elem.outerHTML.replace(/.*hash\//, "").replace(/" .*\n.*\n.*\n.*/, ""),
+                "size": elem.nextElementSibling.textContent,
+                "src": elem.href,
+              });
             }
-            biadu_query_magnet();
           }
-        });
-      }
-      else if (main[key].func) {
-        add_style();
-        simple_offline_table(main[key].func);
-        reg_event();
-      }
-      else if (main[key].fill_form) {
-        var magnet = GM_getValue('magnet');
-        GM_setValue('magnet', '');
-        if (magnet) {
-          $c({
-            self: document.body,
-            append: [{
-              tag: 'script',
-              prop: {
-                innerHTML: '(' + main[key].fill_form.toString() + ')(\'' + magnet + '\');',
-              }
-            }]
-          });
         }
         else {
-          //alert('没有磁链接');
+          data.push({
+            "title": "没有找到磁链接",
+            "mag": "",
+            "size": "0",
+            "src": result.finalUrl,
+          });
         }
+        cb(result.finalUrl, data);
+      },
+      onerror: function (e) {
+        console.error(e);
+      }
+    });
+  },
+  1: function (kw, cb) {
+    GM_xmlhttpRequest({
+      method: "GET",
+      url: "https://btdb.in/q/" + kw + "/",
+      onload: function (result) {
+        let doc = common.parsetext(result.responseText);
+        let data = [];
+        let t = doc.getElementsByClassName("item-title");
+        if (t) {
+          for (let elem of t) {
+            data.push({
+              "title": elem.firstChild.title,
+              "mag": elem.nextElementSibling.firstElementChild.href,
+              "size": elem.nextElementSibling.children[1].textContent,
+              "src": "https://btdb.in" + elem.firstChild.getAttribute("href"),
+            });
+          }
+        }
+        else {
+          data.push({
+            "title": "没有找到磁链接",
+            "mag": "",
+            "size": "0",
+            "src": result.finalUrl,
+          });
+        }
+
+        cb(result.finalUrl, data);
+      },
+      onerror: function (e) {
+        console.error(e);
+      }
+    });
+  }
+};
+
+let display_table = function (vid, insert_where) {
+  my_search.current(vid, function (data, src) {
+    if (data) {
+      let tab = magnet_table.generate(data, src);
+      if (typeof insert_where === "string") {
+        let elem = document.querySelector(insert_where);
+        //console.log("display_table", tab, elem);
+        if (elem) {
+          elem.parentElement.insertBefore(tab, elem);
+        }
+      }
+      else if (typeof insert_where === "function") {
+        insert_where(tab);
+      }
+      else {
+        console.error("插入表格错误");
+      }
+
+      common.reg_event();
+    }
+  });
+}
+
+
+let vid_mode = function (v) {
+  let vid = "";
+  try {
+    vid = v.vid();
+  }
+  catch (error) {
+    vid = "";
+    console.error("没有找到番号", v.vid.toString());
+  }
+  if (vid) {
+    console.info("番号：", vid);
+    common.add_style();
+    display_table(vid, v.insert_where);
+  }
+};
+
+let dl_mode = function (v) {
+  let mag = GM_getValue("magnet", "");
+  if (mag) {
+    let script = document.createElement("script");
+    script.setAttribute("type", "text/javascript");
+    script.innerHTML = "(" + v.fill_form.toString() + ")(\"" + mag + "\")";
+    document.body.appendChild(script);
+  }
+  GM_getValue("magnet", "");
+};
+
+let run = function () {
+  for (let i = 0; i < main_keys.length; i++) {
+    let v = main[main_keys[i]];
+
+    if (v.re && v.re.test(location.href)) {
+      if (v.type === 0) {
+
+        //----
+
+        //for javlibrary
+        if (main_keys[i] === "javlibrary") {
+          if (document.querySelector("#adultwarningprompt")) {
+            document.querySelectorAll("#adultwarningprompt input")[0].click();
+          }
+        }
+        //----
+
+        vid_mode(v);
+      }
+      else if (v.type == 1) {
+        dl_mode(v);
       }
       break;
     }
   }
 };
-$c({
-  self: document,
-  event: {
-    type: 'DOMContentLoaded',
-    listener: function(e) {
-      run();
-    },
-  },
-});
+let set_max_title_length = function () {
+  let len = prompt("请输入你想要的标题长度", GM_getValue("max_title_length", 100));
+  if (len != null && len != "") {
+    GM_setValue("max_title_length", len);
+  }
+}
+
+GM_registerMenuCommand("挊--设置最大标题长度", set_max_title_length);
+
+run();
+
