@@ -61,7 +61,7 @@ let main = {
     re: /(avmo|avso|avxo).*movie.*/,
     insert_where: "#movie-share",
     vid: function () {
-      return $(".header")[0].nextElementSibling.innerHTML;
+      return document.querySelector(".header").nextElementSibling.innerHTML;
     }
   },
   javlibrary: {
@@ -69,7 +69,7 @@ let main = {
     re: /(javlibrary|javlib3|look4lib|5avlib|javli6|j8vlib|j9lib|javl10).*\?v=.*/,
     insert_where: "#video_favorite_edit",
     vid: function () {
-      return $("#video_id")[0].getElementsByClassName("text")[0].innerHTML;
+      return document.querySelector("#video_id").getElementsByClassName("text")[0].innerHTML;
     }
   },
   javbus: {
@@ -77,8 +77,7 @@ let main = {
     re: /javbus/,
     insert_where: "#star-div",
     vid: function () {
-      let a = $(".header")[0].nextElementSibling;
-      return a ? a.textContent : "";
+      return document.querySelector(".header").nextElementSibling.textContent;
     }
   },
   fanhaoku: {
@@ -106,54 +105,6 @@ let main = {
       return result[0] ? result[0].replace("00", "") : "";
     }
   },
-  /*
-  minnano: {
-    type: 0,
-    re: /minnano-av/,
-    insert_where: "",
-    vid: function () {
-      let r = "";
-      for (let elem of document.querySelectorAll(".t11")) {
-        if (elem.textContent == "品番") {
-          r = elem.nextElementSibling.textContent;
-          break;
-        }
-      }
-      return r;
-    },
-    proc: function (tab) {
-      let tmp = (function () {
-        for (let a of document.querySelectorAll("table")) {
-          if (a.bgColor == "#EEEEEE") {
-            return a;
-          }
-        }
-      })();
-      insert_after(tmp);
-    }
-  },
-  oisinbosoft: {
-    type: 0,
-    re: /oisinbosoft/,
-    insert_where: "#detail_info",
-    vid: function () {
-      let r = location.pathname.replace(/.*\/+/, "").replace(".html", "");
-      return r.indexOf("-") == r.lastIndexOf("-") ? r : r.replace(/\w*-?/, "");
-    }
-  },
-
-  avdb: {
-    type: 0,
-    re: /avdb\.la/,
-    insert_where: "#downs",
-    vid: function () {
-      return $(".info")[0].firstElementChild.innerHTML.replace(/<.*>/, "").trim();
-    },
-    proc: function (tab) {
-      insert_after($("#downs")[0].previousElementSibling);
-    }
-  },
-  */
 
   //网盘下载 类
   //这些 $ 是真正的 jquery
@@ -239,25 +190,6 @@ let main = {
   },
 
 };
-let main_keys = Object.keys(main); //下面的不要出现
-main.cur_tab = null;
-main.cur_vid = "";
-let $ = function (selector, context) {
-  if (context) {
-    return context.querySelectorAll(selector);
-  }
-  return document.querySelectorAll(selector);
-};
-let insert_after = function (b) {
-  b = $(b)[0];
-  if (b) {
-    b.parentElement.insertBefore(main.cur_tab, b);
-  }
-  else {
-    console.error(location, "没有正确插入表格", b);
-  }
-};
-
 
 let offline_sites = {
   baidu: {
@@ -565,6 +497,7 @@ let my_search = {
 };
 
 let display_table = function (vid, insert_where) {
+  common.add_style();
   my_search.current(vid, function (data, src) {
     if (data) {
       let tab = magnet_table.generate(data, src);
@@ -599,7 +532,6 @@ let vid_mode = function (v) {
   }
   if (vid) {
     console.info("番号：", vid);
-    common.add_style();
     display_table(vid, v.insert_where);
   }
 };
@@ -616,6 +548,7 @@ let dl_mode = function (v) {
 };
 
 let run = function () {
+  let main_keys = Object.keys(main)
   for (let i = 0; i < main_keys.length; i++) {
     let v = main[main_keys[i]];
 
