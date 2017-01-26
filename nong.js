@@ -16,8 +16,8 @@
 // @include     http*://*j9lib.com/*
 // @include     http*://*javl10.com/*
 
-
 // @include     http*://www.libredmm.com/products/*
+
 // @include     http*://www.javbus.com/*
 // @include     http*://www.javbus.me/*
 // @include     http*://www.javbus2.com/*
@@ -27,20 +27,12 @@
 
 // @include     http*://www.icpmp.com/fanhao/*.html
 
-// @include     http*://avdb.la/movie/*
-// @include     http*://www.141jav.com/view/*
-// @include     http*://www.av4you.net/work/*.htm
-// @include     http*://www.dmmy18.com/*
 
 // @include     http*://pan.baidu.com/disk/home*
 // @include     http*://115.com/?tab=offline&mode=wangpan
-// @include     http*://cloud.letv.com/webdisk/home/index
 // @include     http*://disk.yun.uc.cn/
 // @include     http*://www.furk.net/users/files/add
 // @include     *.yunpan.360.cn/my/
-// @include     http://www.dmm.co.jp/digital/videoa/*
-// @include     http://www.btcherry.org/*
-// @include     https://btdigg.org/search*
 
 // @version     1.39
 // @run-at      document-end
@@ -51,7 +43,7 @@
 // @grant       GM_addStyle
 // @grant       GM_registerMenuCommand
 // ==/UserScript==
-//www.minnano-av.com
+
 
 let max_title_length = GM_getValue("max_title_length", 100);
 let main = {
@@ -83,7 +75,7 @@ let main = {
   fanhaoku: {
     type: 0,
     re: /icpmp/,
-    insert_where: "div.mod_film:nth-child(8)",
+    insert_where: ".mod_film",
     vid: function () {
       return document.querySelector(".title_inner").title;
     }
@@ -250,7 +242,7 @@ let common = {
     event.preventDefault(); //阻止跳转
   },
   handle_dl_event: function (event) {
-    let mag = event.target.parentElement.parentElement.getAttribute("mag");
+    let mag = event.target.parentElement.parentElement.parentElement.getAttribute("mag");
     GM_setValue("magnet", mag);
   },
 
@@ -337,7 +329,38 @@ let magnet_table = {
       }
       return tr;
     },
+    create_row_for_sukebei: function (data) {
+      let tr = document.createElement("tr");
+      tr.className = "nong-row";
+      tr.setAttribute("mag", data.mag);
+      let td = document.createElement("td");
+      let append_elems = [
 
+        (function (title, src) {
+          return this.create_info(title, src);
+        })(data.title, data.src),
+
+        (function (size, src) {
+          return this.create_size(size, src)
+        })(data.size, data.src),
+
+        (function (torrent_url) {
+          let operate = this.create_operation(torrent_url);
+          operate.firstChild.textContent = "";
+          return operate;
+        })(data.torrent_url),
+
+        (function () {
+          let div = document.createElement("div");
+          div.textContent = "暂不支持离线下载";
+        })()];
+      for (let elem of append_elems) {
+        let c = td.cloneNode(true);
+        c.appendChild(elem);
+        tr.appendChild(c);
+      }
+      return tr;
+    },
     create_info: function (title, mag) {
       let a = this.info.cloneNode(true);
       a.firstChild.textContent = title.length < max_title_length ? title : title.substr(0, max_title_length) + "...";
@@ -403,15 +426,22 @@ let magnet_table = {
   generate: function (src, data) {
     let tab = document.createElement("table");
     tab.id = "nong-table";
-    if (data) {
-      tab.appendChild(this.template.create_head(src));
+
+    tab.appendChild(this.template.create_head(src));
+
+    if (location.host === "sukebei.nyaa.se") {
+      for (let d of data) {
+        tab.appendChild(this.template.create_row_for_sukebei(d));
+      }
+    }
+    else {
       for (let d of data) {
         tab.appendChild(this.template.create_row(d));
       }
     }
-    else {
-      //notice
-    }
+
+
+
     return tab;
   },
 
@@ -424,7 +454,7 @@ let my_search = {
     }
     return search(kw, cb);
   },
-  search_name_string: ["btso", "btdb"],
+  search_name_string: ["btso", "btdb", "sukebei.nyaa"],
   0: function (kw, cb) {
     GM_xmlhttpRequest({
       method: "GET",
@@ -493,33 +523,66 @@ let my_search = {
         console.error(e);
       }
     });
+  },
+  2: function (kw, cb) {
+    GM_xmlhttpRequest({
+      method: "GET",
+      url: "https://btdb.in/q/" + kw + "/",
+      onload: function (result) {
+        let doc = common.parsetext(result.responseText);
+        let data = [];
+        let t = doc.getElementsByClassName("item-title");
+        if (t) {
+          for (let elem of t) {
+            data.push({
+              "title": elem.firstChild.title,
+              "mag": elem.nextElementSibling.firstElementChild.href,
+              "size": elem.nextElementSibling.children[1].textContent,
+              "src": "https://btdb.in" + elem.firstChild.getAttribute("href"),
+            });
+          }
+        }
+        else {
+          data.push({
+            "title": "没有找到磁链接",
+            "mag": "",
+            "size": "0",
+            "src": result.finalUrl,
+          });
+        }
+
+        cb(result.finalUrl, data);
+      },
+      onerror: function (e) {
+        console.error(e);
+      }
+    });
   }
 };
 
 let display_table = function (vid, insert_where) {
   common.add_style();
   my_search.current(vid, function (data, src) {
-    if (data) {
-      let tab = magnet_table.generate(data, src);
-      if (typeof insert_where === "string") {
-        let elem = document.querySelector(insert_where);
-        //console.log("display_table", tab, elem);
-        if (elem) {
-          elem.parentElement.insertBefore(tab, elem);
-        }
-      }
-      else if (typeof insert_where === "function") {
-        insert_where(tab);
-      }
-      else {
-        console.error("插入表格错误");
-      }
 
-      common.reg_event();
+    let tab = magnet_table.generate(data, src);
+    if (typeof insert_where === "string") {
+      let elem = document.querySelector(insert_where);
+      //console.log("display_table", tab, elem);
+      if (elem) {
+        elem.parentElement.insertBefore(tab, elem);
+      }
     }
+    else if (typeof insert_where === "function") {
+      insert_where(tab);
+    }
+    else {
+      console.error("插入表格错误");
+    }
+
+    common.reg_event();
+
   });
 }
-
 
 let vid_mode = function (v) {
   let vid = "";
@@ -582,7 +645,6 @@ let set_max_title_length = function () {
 }
 
 GM_registerMenuCommand("挊--设置最大标题长度", set_max_title_length);
-
 run();;
 
 
