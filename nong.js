@@ -23,6 +23,7 @@
 
 // @include     http*://www.icpmp.com/fanhao/*.html
 // @include     http*://blog.jav4you.com/*
+// @include     http*://*1pondo.tv/*/index.htm
 
 // @include     http*://pan.baidu.com/disk/home*
 // @include     http*://115.com/?tab=offline&mode=wangpan
