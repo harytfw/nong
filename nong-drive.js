@@ -6,7 +6,7 @@
 
 // @include     http*://*
 
-// @version     1.3
+// @version     1.31
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -17,8 +17,6 @@
 // @grant       GM_registerMenuCommand
 // ==/UserScript==
 
-//
-let max_title_length = GM_getValue("max_title_length", 60);
 let i_am_old_driver = {
   start: function () {
     this.add_css();
@@ -258,10 +256,22 @@ let common = {
   },
 
   reg_event: function () {
-    let selector_event_map = [[".nong-copy", this.handle_copy_event], [".nong-offline-download", this.handle_dl_event], ["body", this.handle_close_event]];
-    for (let [selector, event] of selector_event_map) {
-      for (let elem of document.querySelectorAll(selector)) {
-        elem.addEventListener("click", event);
+
+    let selector_event_map = [{
+      selector: ".nong-copy",
+      type: "click",
+      fn: this.handle_copy_event
+    }, {
+      selector: ".nong-offline-download",
+      type: "click",
+      fn: this.handle_dl_event
+    }];
+
+    selector_event_map.push({ selector: "body", type: "click", fn: this.handle_close_event })
+    for (let obj of selector_event_map) {
+      for (let elem of document.querySelectorAll(obj.selector)) {
+        //console.log(elem, obj.type, obj.fn);
+        elem.addEventListener(obj.type, obj.fn);
       }
     }
   },
@@ -294,6 +304,7 @@ let magnet_table = {
 
       let select_box = document.createElement("select");
       let option_str = my_search.search_name_string;
+      //console.log("get", GM_getValue("search_index"));
       let index = GM_getValue("search_index", 0);
       let op_value = 0;
       for (let str of option_str) {
@@ -330,6 +341,18 @@ let magnet_table = {
       }
       return a;
     },
+    create_row: function (data) {
+      let tr = document.createElement("tr");
+      tr.className = "nong-row";
+      tr.setAttribute("mag", data.mag);
+      let td = document.createElement("td");
+      for (let elem of [this.create_info(data.title, data.mag), this.create_size(data.size, data.src), this.create_operation(data.mag), this.create_offline()]) {
+        let c = td.cloneNode(true);
+        c.appendChild(elem);
+        tr.appendChild(c);
+      }
+      return tr;
+    },
     create_row_for_sukebei: function (data) {
       let tr = document.createElement("tr");
       tr.className = "nong-row";
@@ -348,8 +371,8 @@ let magnet_table = {
         (function (torrent_url, self) {
           let operate = self.create_operation(torrent_url);
           operate.firstChild.textContent = "种子";
-          operate.setAttribute("class","nong-copy-sukebei");
-          operate.setAttribute("target","_blank");
+          operate.firstChild.setAttribute("class", "nong-copy-sukebei");
+          operate.firstChild.setAttribute("target", "_blank");
           return operate;
         })(data.torrent_url, this),
 
@@ -365,19 +388,6 @@ let magnet_table = {
       }
       return tr;
     },
-    create_row: function (data) {
-      let tr = document.createElement("tr");
-      tr.className = "nong-row";
-      tr.setAttribute("mag", data.mag);
-      let td = document.createElement("td");
-      for (let elem of [this.create_info(data.title, data.mag), this.create_size(data.size, data.src), this.create_operation(data.mag), this.create_offline()]) {
-        let c = td.cloneNode(true);
-        c.appendChild(elem);
-        tr.appendChild(c);
-      }
-      return tr;
-    },
-
     create_info: function (title, mag) {
       let a = this.info.cloneNode(true);
       a.firstChild.textContent = title.length < max_title_length ? title : title.substr(0, max_title_length) + "...";
@@ -389,7 +399,6 @@ let magnet_table = {
       let a = this.size.cloneNode(true);
       a.textContent = size;
       a.href = src;
-      a.target = "_blank";
       return a;
     },
     create_operation: function (mag) {
@@ -446,6 +455,8 @@ let magnet_table = {
     let tab = document.createElement("table");
     tab.id = "nong-table";
     tab.appendChild(this.template.create_head(src));
+    //console.log(src);
+    //console.log(data);
     if (src.match("sukebei.nyaa.se")) {
       for (let d of data) {
         tab.appendChild(this.template.create_row_for_sukebei(d));
@@ -463,9 +474,17 @@ let magnet_table = {
 let my_search = {
   current: function (kw, cb) {
     let search = my_search[GM_getValue("search_index", 0)];
-    return search(kw, cb);
+    try {
+      return search(kw, cb);
+    }
+    catch (e) {
+      this.search_error();
+    }
   },
-  search_name_string: ["btso", "btdb", "sukebei.nyaa"],
+  search_error: function (r) {
+    alert("搜索出现错误，请检查网络");
+  },
+  search_name_string: ["btso", "btdb", "sukebei.nyaa", "btkitty"],
   0: function (kw, cb) {
     GM_xmlhttpRequest({
       method: "GET",
@@ -498,6 +517,7 @@ let my_search = {
       },
       onerror: function (e) {
         console.error(e);
+        throw "search error";
       }
     });
   },
@@ -532,6 +552,7 @@ let my_search = {
       },
       onerror: function (e) {
         console.error(e);
+        throw "search error";
       }
     });
   },
@@ -545,7 +566,6 @@ let my_search = {
         let t = doc.getElementsByClassName("tlistrow");
         if (t) {
           for (let elem of t) {
-            console.log(elem.querySelector(".tlistname a").getAttribute("href"));
             data.push({
               "title": elem.querySelector(".tlistname a").textContent,
               "mag": "",
@@ -569,9 +589,49 @@ let my_search = {
       },
       onerror: function (e) {
         console.error(e);
+        throw "search error";
       }
     });
-  }
+  },
+  3: function (kw, cb) {
+    GM_xmlhttpRequest({
+      method: "POST",
+      url: "http://btkitty.bid/",
+      data: "keyword=" + kw,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      onload: function (result) {
+        let doc = common.parsetext(result.responseText);
+        let data = [];
+        let t = doc.getElementsByClassName("list-con");
+        if (t) {
+          for (let elem of t) {
+            data.push({
+              "title": elem.querySelector("dt a").textContent,
+              "mag": elem.querySelector("dd a").href,
+              "size": elem.querySelector(".option span:nth-child(3) b").textContent,
+              "src": elem.querySelector("dt a").href,
+            });
+          }
+        }
+        else {
+          data.push({
+            "title": "没有找到磁链接",
+            "mag": "",
+            "size": "0",
+            "src": result.finalUrl,
+          });
+        }
+        cb(result.finalUrl, data);
+      },
+      onerror: function (e) {
+        console.error(e);
+        throw "search error";
+      }
+    })
+  },
+
 };
 let display_table = function (vid, insert_where) {
   common.add_style();
@@ -623,8 +683,9 @@ let run = function () {
   }
 };
 
+let max_title_length = GM_getValue("max_title_length", 40);
 let set_max_title_length = function () {
-  let len = prompt("请输入你想要的标题长度", GM_getValue("max_title_length", 60));
+  let len = prompt("请输入你想要的标题长度", GM_getValue("max_title_length", 40));
   if (len !== null && len !== "") {
     GM_setValue("max_title_length", len);
     let table = document.querySelector("#nong-table");

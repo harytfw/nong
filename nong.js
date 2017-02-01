@@ -27,11 +27,9 @@
 
 // @include     http*://pan.baidu.com/disk/home*
 // @include     http*://115.com/?tab=offline&mode=wangpan
-// @include     http*://disk.yun.uc.cn/
 // @include     http*://www.furk.net/users/files/add
-// @include     *.yunpan.360.cn/my/
 
-// @version     1.42
+// @version     1.43
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -40,9 +38,6 @@
 // @grant       GM_addStyle
 // @grant       GM_registerMenuCommand
 // ==/UserScript==
-
-
-let max_title_length = GM_getValue("max_title_length", 100);
 
 let main = {
   //av信息查询 类
@@ -230,7 +225,7 @@ let offline_sites = {
   },
 };
 let common = {
-  add_style: function (css) {
+  add_style: function () {
     GM_addStyle([
       "#nong-table{border-collapse: initial !important;background-color: white !important;text-align: center !important;margin:10px auto;color:#666 !important;font-size:13px;text-align:center !important;border: 1px solid #cfcfcf !important;border-radius: 10px !important;}",
       "#nong-table a {margin-right: 5px !important;color:blue}",
@@ -323,6 +318,7 @@ let magnet_table = {
 
       th_list[1].appendChild(document.createElement("a"));
       th_list[1].lastChild.setAttribute("href", src);
+      th_list[1].lastChild.setAttribute("target", "_blank");
       th_list[1].lastChild.textContent = head_str[0];
 
       th_list[2].appendChild(document.createElement("a"));
@@ -450,8 +446,8 @@ let magnet_table = {
     let tab = document.createElement("table");
     tab.id = "nong-table";
     tab.appendChild(this.template.create_head(src));
-    console.log(src);
-    console.log(data);
+    //console.log(src);
+    //console.log(data);
     if (src.match("sukebei.nyaa.se")) {
       for (let d of data) {
         tab.appendChild(this.template.create_row_for_sukebei(d));
@@ -479,7 +475,7 @@ let my_search = {
   search_error: function (r) {
     alert("搜索出现错误，请检查网络");
   },
-  search_name_string: ["btso", "btdb", "sukebei.nyaa", "btkitty", "cilibaba"],
+  search_name_string: ["btso", "btdb", "sukebei.nyaa", "btkitty"],
   0: function (kw, cb) {
     GM_xmlhttpRequest({
       method: "GET",
@@ -621,7 +617,7 @@ let my_search = {
         cb(result.finalUrl, data);
       },
       onerror: function (e) {
-        console.log(e);
+        console.error(e);
         throw "search error";
       }
     })
@@ -671,19 +667,19 @@ let vid_mode = function (v) {
 let dl_mode = function (v) {
 
   let mag = GM_getValue("magnet", "");
-  console.info(1, "开始离线下载", mag);
+  //console.info(1, "开始离线下载", mag);
   if (mag) {
     let script = document.createElement("script");
     script.setAttribute("type", "text/javascript");
     script.innerHTML = "(" + v.fill_form.toString() + ")(\"" + mag + "\")";
     document.body.appendChild(script);
-    console.info(info);
+    //console.info(info);
   }
   GM_getValue("magnet", "");
 };
 
 let run = function () {
-  max_title_length = GM_getValue("max_title_length", 100);
+  max_title_length = GM_getValue("max_title_length", 40);
   let main_keys = Object.keys(main);
   for (let i = 0; i < main_keys.length; i++) {
     let v = main[main_keys[i]];
@@ -710,8 +706,9 @@ let run = function () {
     }
   }
 };
+let max_title_length = GM_getValue("max_title_length", 40);
 let set_max_title_length = function () {
-  let len = prompt("请输入你想要的标题长度", GM_getValue("max_title_length", 100));
+  let len = prompt("请输入你想要的标题长度", GM_getValue("max_title_length", 40));
   if (len !== null && len !== "") {
     GM_setValue("max_title_length", len);
     let table = document.querySelector("#nong-table");
@@ -720,7 +717,7 @@ let set_max_title_length = function () {
   }
 };
 
-GM_registerMenuCommand("挊--标题长度", set_max_title_length);
+GM_registerMenuCommand("挊-标题长度", set_max_title_length);
 run();
 
 
