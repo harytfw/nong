@@ -6,15 +6,12 @@
 // @include     http*://avmo.pw/*
 // @include     http*://avso.pw/*
 // @include     http*://avxo.pw/*
+// @include     http*://www.av28.com/*/movie/*
 
 // @include     http*://*javlibrary.com/*
-// @include     http*://*5avlib.com/*
-// @include     http*://*look4lib.com/*
-// @include     http*://*javlib3.com/*
-// @include     http*://*javli6.com/*
-// @include     http*://*j8vlib.com/*
-// @include     http*://*j9lib.com/*
+// @include     http*://*javlib.com/*
 // @include     http*://*javl10.com/*
+// @include     http*://*jav11b.com/*
 
 // @include     http*://www.libredmm.com/products/*
 
@@ -23,10 +20,9 @@
 // @include     http*://www.javbus2.com/*
 // @include     http*://www.javbus3.com/*
 // @include     http*://www.javbus5.com/*
-// @include     http*://*j8vlib.com/*
 
 // @include     http*://www.icpmp.com/fanhao/*.html
-
+// @include     http*://blog.jav4you.com/*
 
 // @include     http*://pan.baidu.com/disk/home*
 // @include     http*://115.com/?tab=offline&mode=wangpan
@@ -34,7 +30,7 @@
 // @include     http*://www.furk.net/users/files/add
 // @include     *.yunpan.360.cn/my/
 
-// @version     1.39
+// @version     1.42
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -46,11 +42,12 @@
 
 
 let max_title_length = GM_getValue("max_title_length", 100);
+
 let main = {
   //av信息查询 类
   jav: {
     type: 0,
-    re: /(avmo|avso|avxo).*movie.*/,
+    re: /(avmo|avso|avxo|av28).*movie.*/,
     insert_where: "#movie-share",
     vid: function () {
       return document.querySelector(".header").nextElementSibling.innerHTML;
@@ -58,7 +55,7 @@ let main = {
   },
   javlibrary: {
     type: 0,
-    re: /(javlibrary|javlib3|look4lib|5avlib|javli6|j8vlib|j9lib|javl10).*\?v=.*/,
+    re: /(javlibrary|javlib|javl10|jav11b).*\?v=.*/,
     insert_where: "#video_favorite_edit",
     vid: function () {
       return document.querySelector("#video_id").getElementsByClassName("text")[0].innerHTML;
@@ -87,6 +84,22 @@ let main = {
     vid: function () {
       return location.href.match(/products\/(.*)/)[1];
     }
+  },
+  blogjav4you: {
+    type: 0,
+    re: /blog\.jav4you\.com/,
+    insert_where: ".posttext",
+    vid: function () {
+      return document.querySelector(".posttitle a").textContent.match(/\[(.*)\]/)[1];
+    },
+  },
+  pondo1:{
+    type: 0,
+    re: /1pondo\.tv.*\/index.htm/,
+    insert_where: ".hdg3",
+    vid: function () {
+      return location.pathname.split("/")[3];
+    },
   },
   dmm: {
     type: 0,
@@ -217,21 +230,16 @@ let offline_sites = {
 };
 let common = {
   add_style: function (css) {
-    if (css) {
-      GM_addStyle(css);
-    }
-    else {
-      GM_addStyle([
-        "#nong-table{border-collapse: initial !important;background-color: white !important;text-align: center !important;margin:10px auto;color:#666 !important;font-size:13px;text-align:center !important;border: 1px solid #cfcfcf !important;border-radius: 10px !important;}",
-        "#nong-table a {margin-right: 5px !important;color:blue}",
-        "#nong-table a:hover {color:#d20f00 !important;}",
-        "#nong-table th,#nong-table td{text-align: inherit !important;height:30px;padding:0 1em 0 !important;}",
-        ".nong-row{text-align: inherit !important;height:30px;padding:0 1em 0 !important;border: 1px solid #EFEFEF !important;}",
-        ".nong-row:hover{background-color: #dae8ff !important;}",
-        ".nong-offline-download{color: rgb(0, 180, 30) !important;}",
-        ".nong-offline-download:hover{color:red !important;}",
-      ].join(""));
-    }
+    GM_addStyle([
+      "#nong-table{border-collapse: initial !important;background-color: white !important;text-align: center !important;margin:10px auto;color:#666 !important;font-size:13px;text-align:center !important;border: 1px solid #cfcfcf !important;border-radius: 10px !important;}",
+      "#nong-table a {margin-right: 5px !important;color:blue}",
+      "#nong-table a:hover {color:#d20f00 !important;}",
+      "#nong-table th,#nong-table td{text-align: inherit !important;height:30px;padding:0 1em 0 !important;}",
+      ".nong-row{text-align: inherit !important;height:30px;padding:0 1em 0 !important;border: 1px solid #EFEFEF !important;}",
+      ".nong-row:hover{background-color: #dae8ff !important;}",
+      ".nong-offline-download{color: rgb(0, 180, 30) !important;}",
+      ".nong-offline-download:hover{color:red !important;}",
+    ].join(""));
   },
   handle_copy_event: function (event) {
     event.target.innerHTML = "成功";
@@ -243,14 +251,24 @@ let common = {
   },
   handle_dl_event: function (event) {
     let mag = event.target.parentElement.parentElement.parentElement.getAttribute("mag");
+    console.info("磁链接", mag);
     GM_setValue("magnet", mag);
   },
 
   reg_event: function () {
-    let selector_event_map = [[".nong-copy", this.handle_copy_event], [".nong-offline-download", this.handle_dl_event]];
-    for (let [selector, event] of selector_event_map) {
-      for (let elem of document.querySelectorAll(selector)) {
-        elem.addEventListener("click", event);
+    let selector_event_map = [{
+      selector: ".nong-copy",
+      type: "click",
+      fn: this.handle_copy_event
+    }, {
+      selector: ".nong-offline-download",
+      type: "click",
+      fn: this.handle_dl_event
+    }];
+    for (let obj of selector_event_map) {
+      for (let elem of document.querySelectorAll(obj.selector)) {
+        //console.log(elem, obj.type, obj.fn);
+        elem.addEventListener(obj.type, obj.fn);
       }
     }
   },
@@ -336,24 +354,27 @@ let magnet_table = {
       let td = document.createElement("td");
       let append_elems = [
 
-        (function (title, src) {
-          return this.create_info(title, src);
-        })(data.title, data.src),
+        (function (title, src, self) {
+          return self.create_info(title, src);
+        })(data.title, data.src, this),
 
-        (function (size, src) {
-          return this.create_size(size, src)
-        })(data.size, data.src),
+        (function (size, src, self) {
+          return self.create_size(size, src);
+        })(data.size, data.src, this),
 
-        (function (torrent_url) {
-          let operate = this.create_operation(torrent_url);
-          operate.firstChild.textContent = "";
+        (function (torrent_url, self) {
+          let operate = self.create_operation(torrent_url);
+          operate.firstChild.textContent = "种子";
+          operate.firstChild.setAttribute("class", "nong-copy-sukebei");
+          operate.firstChild.setAttribute("target", "_blank");
           return operate;
-        })(data.torrent_url),
+        })(data.torrent_url, this),
 
-        (function () {
+        (function (self) {
           let div = document.createElement("div");
           div.textContent = "暂不支持离线下载";
-        })()];
+          return div;
+        })(this)];
       for (let elem of append_elems) {
         let c = td.cloneNode(true);
         c.appendChild(elem);
@@ -390,6 +411,7 @@ let magnet_table = {
       let b = document.createElement("a");
       b.textContent = "name";
       b.href = "src";
+      b.target = "_blank";
       a.appendChild(b);
       return a;
     })(),
@@ -426,10 +448,10 @@ let magnet_table = {
   generate: function (src, data) {
     let tab = document.createElement("table");
     tab.id = "nong-table";
-
     tab.appendChild(this.template.create_head(src));
-
-    if (location.host === "sukebei.nyaa.se") {
+    console.log(src);
+    console.log(data);
+    if (src.match("sukebei.nyaa.se")) {
       for (let d of data) {
         tab.appendChild(this.template.create_row_for_sukebei(d));
       }
@@ -439,9 +461,6 @@ let magnet_table = {
         tab.appendChild(this.template.create_row(d));
       }
     }
-
-
-
     return tab;
   },
 
@@ -449,12 +468,17 @@ let magnet_table = {
 let my_search = {
   current: function (kw, cb) {
     let search = my_search[GM_getValue("search_index", 0)];
-    if (!search) {
-      alert("search engine not found");
+    try {
+      return search(kw, cb);
     }
-    return search(kw, cb);
+    catch (e) {
+      this.search_error();
+    }
   },
-  search_name_string: ["btso", "btdb", "sukebei.nyaa"],
+  search_error: function (r) {
+    alert("搜索出现错误，请检查网络");
+  },
+  search_name_string: ["btso", "btdb", "sukebei.nyaa", "btkitty", "cilibaba"],
   0: function (kw, cb) {
     GM_xmlhttpRequest({
       method: "GET",
@@ -487,6 +511,7 @@ let my_search = {
       },
       onerror: function (e) {
         console.error(e);
+        throw "search error";
       }
     });
   },
@@ -521,24 +546,66 @@ let my_search = {
       },
       onerror: function (e) {
         console.error(e);
+        throw "search error";
       }
     });
   },
   2: function (kw, cb) {
     GM_xmlhttpRequest({
       method: "GET",
-      url: "https://btdb.in/q/" + kw + "/",
+      url: "https://sukebei.nyaa.se/?page=search&cats=0_0&filter=0&term=" + kw,
       onload: function (result) {
         let doc = common.parsetext(result.responseText);
         let data = [];
-        let t = doc.getElementsByClassName("item-title");
+        let t = doc.getElementsByClassName("tlistrow");
         if (t) {
           for (let elem of t) {
             data.push({
-              "title": elem.firstChild.title,
-              "mag": elem.nextElementSibling.firstElementChild.href,
-              "size": elem.nextElementSibling.children[1].textContent,
-              "src": "https://btdb.in" + elem.firstChild.getAttribute("href"),
+              "title": elem.querySelector(".tlistname a").textContent,
+              "mag": "",
+              "torrent_url": "https:" + elem.querySelector(".tlistdownload a").getAttribute("href"),
+              "size": elem.querySelector(".tlistsize").textContent,
+              "src": "https:" + elem.querySelector(".tlistname a").getAttribute("href"),
+            });
+          }
+        }
+        else {
+          data.push({
+            "title": "没有找到磁链接",
+            "mag": "",
+            "torrent_url": "",
+            "size": "0",
+            "src": result.finalUrl,
+          });
+        }
+
+        cb(result.finalUrl, data);
+      },
+      onerror: function (e) {
+        console.error(e);
+        throw "search error";
+      }
+    });
+  },
+  3: function (kw, cb) {
+    GM_xmlhttpRequest({
+      method: "POST",
+      url: "http://btkitty.bid/",
+      data: "keyword=" + kw,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      onload: function (result) {
+        let doc = common.parsetext(result.responseText);
+        let data = [];
+        let t = doc.getElementsByClassName("list-con");
+        if (t) {
+          for (let elem of t) {
+            data.push({
+              "title": elem.querySelector("dt a").textContent,
+              "mag": elem.querySelector("dd a").href,
+              "size": elem.querySelector(".option span:nth-child(3) b").textContent,
+              "src": elem.querySelector("dt a").href,
             });
           }
         }
@@ -550,14 +617,15 @@ let my_search = {
             "src": result.finalUrl,
           });
         }
-
         cb(result.finalUrl, data);
       },
       onerror: function (e) {
-        console.error(e);
+        console.log(e);
+        throw "search error";
       }
-    });
-  }
+    })
+  },
+
 };
 
 let display_table = function (vid, insert_where) {
@@ -582,7 +650,7 @@ let display_table = function (vid, insert_where) {
     common.reg_event();
 
   });
-}
+};
 
 let vid_mode = function (v) {
   let vid = "";
@@ -600,18 +668,22 @@ let vid_mode = function (v) {
 };
 
 let dl_mode = function (v) {
+
   let mag = GM_getValue("magnet", "");
+  console.info(1, "开始离线下载", mag);
   if (mag) {
     let script = document.createElement("script");
     script.setAttribute("type", "text/javascript");
     script.innerHTML = "(" + v.fill_form.toString() + ")(\"" + mag + "\")";
     document.body.appendChild(script);
+    console.info(info);
   }
   GM_getValue("magnet", "");
 };
 
 let run = function () {
-  let main_keys = Object.keys(main)
+  max_title_length = GM_getValue("max_title_length", 100);
+  let main_keys = Object.keys(main);
   for (let i = 0; i < main_keys.length; i++) {
     let v = main[main_keys[i]];
 
@@ -639,13 +711,16 @@ let run = function () {
 };
 let set_max_title_length = function () {
   let len = prompt("请输入你想要的标题长度", GM_getValue("max_title_length", 100));
-  if (len != null && len != "") {
+  if (len !== null && len !== "") {
     GM_setValue("max_title_length", len);
+    let table = document.querySelector("#nong-table");
+    table.parentElement.removeChild(table);
+    run();
   }
-}
+};
 
-GM_registerMenuCommand("挊--设置最大标题长度", set_max_title_length);
-run();;
+GM_registerMenuCommand("挊--标题长度", set_max_title_length);
+run();
 
 
 
