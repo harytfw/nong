@@ -6,7 +6,7 @@
 
 // @include     http*://*
 
-// @version     1.0
+// @version     1.3
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -18,42 +18,87 @@
 // ==/UserScript==
 
 //
-let max_title_length = GM_getValue("max_title_length", 200);
+let max_title_length = GM_getValue("max_title_length", 60);
 let i_am_old_driver = {
   start: function () {
     this.add_css();
     this.add_small_icon();
   },
   add_css: function () {
-    GM_addStyle(`
-      #nong-drive-anytime-icon{
-        position:fixed;
-        z-index:6969;
-        color: white;
-        border: 1px solid black;
-        border-radius: 32px;
-        width: 32px;
-        height: 32px;
-        left:0px;
-        bottom:0px;
-        text-align: center;
-        line-height: 32px;
-      }
-      #nong-drive-anytime-dialog{
-        position:fixed;
-        left:8%;
-        top:10%;
-        z-index:69699;
-        background-color:white;
-      }
-      #nong-table-wrapper {
-        overflow-x: hidden;
-        overflow-y: auto;
-        position: relative;
-        height: 30em;
-      }
-    `
-    );
+    if (!unsafeWindow.nong_has_add_css) {
+      unsafeWindow.nong_has_add_css = true;
+      GM_addStyle(`
+        #nong-drive-anytime-icon{
+          position:fixed;
+          z-index:6969;
+          color: white;
+          border-radius: 32px;
+          width: 32px;
+          height: 32px;
+          left: 10px;
+          bottom: 15px;
+          text-align: center;
+          line-height: 32px;
+          background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAABGdBTUEAALGPC/x\
+          hBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAAmJLR0QA/4ePzL8AAAAJcEhZcwAAjbsAAI27AZ11gYA\
+          AAAAHdElNRQfdCQQWEiC7N9+uAAADmUlEQVRIx5XVb0gVZhQG8N+93lvmlkZQVhO5hK6GfyIoglpGkLAlbMEg1oe2VuuPwnDZWgV9G2NrtTT\
+          tg4UsttX60mBFtjUFaaQSFKuu1dhQr+XKdKTFtmKl7kNOvWqNzrf3fZ/3vOc873nOCRhtCXIts0SONEH0aRd1Ro2o3pHgwIh10CJr5et1SYs\
+          WDxE2U4YcQbW+UK/PEy1dhU6NimUIICAkNPBQhmKNOpVLe1IES+w1yW5H3RWx1DwRKejR5rw6MSlW2eoPJepHOyhQ6RebNcmxUYFEv/rNbaT\
+          KNMt91So1yVYqU5FT8cEvccO3UoUViYnaJkfS4GmSXNtcFVMkLNVx1+XF535BjVSJyt2xKz7LYai9upVLNE2dC9KHmC/XLFtYuZvWCD6R5KB\
+          1bikXNkeriv+Qi3XahCJ3rPF/tl63Qryny+LHZXNIoxQ5YnaNen2ccaOiKBWTJVmjQxKYq10x9osOyz1BthJVfvC9KlvkDtQDpGlShmLt5gY\
+          t06taRIHD2sEEr/jKKe963iWXPWedat94zUTQ7ojXRVTrtYyTTgh4x01ZwjJt8KMO1VZJlWK++VJMtdIxv/vJFlnGy3bTagEnnKRNGSr0OKx\
+          Wq2ZV8k1AjtM6dDgtG2ELlbnmhjOO6PEZyrSFpGkRENHpvnoHndeqH8n2SLQaO+2x0j0NGrxggWxpurwkoEUa/QqFnPXxCLYX6JAP8nVYMOL\
+          0oHohhfqHvq3/qb8/UvaD6JA+YY/0eNGsQdhDXa64aCfY6aKoZFOEB69P1u2RsL6QdjPRYoN5w/x3qbTDJ77GRTusUGT6sAhmKMdM7SFRGQJ\
+          +9o/drkhAv/GW+9Rmb8gWELXC5475yAMB9Mqyy2UBGaJs1SZDRKsP4nLer0EymOis/XFFvl2riAxttgbVCCoQU23tkED1O2maKWCqGU4N64T\
+          p3vKdmAJBNUFRtd6UolKS9yUMwh4wQFoYfw8T02ZJqiR7U60ow+Xcbe0gcKkWs8FsLZYO7m8cKef4hnLL+oFsx3IQtNFt+wYaSvkQL2nODba\
+          0bqXSkBfnIA/pSnXbJ9F0dc7FN75FYo6bJqxQTJMPbdIsE2RqVmi7a2IKhU1XLWbhyGJd7ro6c5ClTKu7/nLUAQcc9ad7WpXKwhx1Yl4dq8b\
+          zlJpsry/dE/GyXFkmodtVl50Vk+xtJW4r0TC2ZNJV6HrqaOt62mh7zPMzDtfAGHE803j/F3hgObLNSqRJAAAAJXRFWHRkYXRlOmNyZWF0ZQA\
+          yMDE2LTA5LTE3VDE1OjE5OjIyKzA4OjAwASEzcAAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxMy0wOS0wNFQyMjoxODozMiswODowMLfhS54AAAB\
+          NdEVYdHNvZnR3YXJlAEltYWdlTWFnaWNrIDcuMC4xLTYgUTE2IHg4Nl82NCAyMDE2LTA5LTE3IGh0dHA6Ly93d3cuaW1hZ2VtYWdpY2sub3J\
+          n3dmlTgAAABh0RVh0VGh1bWI6OkRvY3VtZW50OjpQYWdlcwAxp/+7LwAAABh0RVh0VGh1bWI6OkltYWdlOjpIZWlnaHQANTEyj41TgQAAABd\
+          0RVh0VGh1bWI6OkltYWdlOjpXaWR0aAA1MTIcfAPcAAAAGXRFWHRUaHVtYjo6TWltZXR5cGUAaW1hZ2UvcG5nP7JWTgAAABd0RVh0VGh1bWI\
+          6Ok1UaW1lADEzNzgzMDQzMTKNF3afAAAAEnRFWHRUaHVtYjo6U2l6ZQAzMy40S0K9TyGvAAAAX3RFWHRUaHVtYjo6VVJJAGZpbGU6Ly8vaG9\
+          tZS93d3dyb290L3NpdGUvd3d3LmVhc3lpY29uLm5ldC9jZG4taW1nLmVhc3lpY29uLmNuL3NyYy8xMTI1Ny8xMTI1NzU3LnBuZ9riv0oAAAA\
+          ASUVORK5CYII=");
+        }
+        #nong-drive-anytime-dialog{
+          position:fixed;
+          left:8%;
+          top:10%;
+          z-index:69699;
+          background-color:white;
+        }
+        #nong-table-wrapper {
+          overflow-x: hidden;
+          overflow-y: auto;
+          position: relative;
+          max-height: 30em;
+        }
+        #nong-drive-anytime-icon:hover{
+          animation-name: steer;
+          animation-duration: 2s;
+          animation-iteration-count: 1;
+        }
+        @keyframes steer {
+          0% {
+            box-shadow: 0 0 0px 0px #000;
+          }
+          25% {
+            box-shadow: 0 0 5px 2px #000;
+          }
+          50% {
+            box-shadow: 0 0 10px 2px #000;
+          }
+          75% {
+            box-shadow: 0 0 5px 2px #000;
+          }
+          100%{
+            box-shadow: 0 0 0px 0px #000;
+          }
+        }
+      `
+      );
+    }
   },
   selection: "",
   add_small_icon: function () {
@@ -99,11 +144,11 @@ let i_am_old_driver = {
 
       });
     }
-    else{
+    else {
       //TODO
     }
   },
-}
+};
 let main = {
   baidu: {
     type: 1,
@@ -285,6 +330,41 @@ let magnet_table = {
       }
       return a;
     },
+    create_row_for_sukebei: function (data) {
+      let tr = document.createElement("tr");
+      tr.className = "nong-row";
+      tr.setAttribute("mag", data.mag);
+      let td = document.createElement("td");
+      let append_elems = [
+
+        (function (title, src, self) {
+          return self.create_info(title, src);
+        })(data.title, data.src, this),
+
+        (function (size, src, self) {
+          return self.create_size(size, src);
+        })(data.size, data.src, this),
+
+        (function (torrent_url, self) {
+          let operate = self.create_operation(torrent_url);
+          operate.firstChild.textContent = "种子";
+          operate.setAttribute("class","nong-copy-sukebei");
+          operate.setAttribute("target","_blank");
+          return operate;
+        })(data.torrent_url, this),
+
+        (function (self) {
+          let div = document.createElement("div");
+          div.textContent = "暂不支持离线下载";
+          return div;
+        })(this)];
+      for (let elem of append_elems) {
+        let c = td.cloneNode(true);
+        c.appendChild(elem);
+        tr.appendChild(c);
+      }
+      return tr;
+    },
     create_row: function (data) {
       let tr = document.createElement("tr");
       tr.className = "nong-row";
@@ -328,6 +408,7 @@ let magnet_table = {
       let b = document.createElement("a");
       b.textContent = "name";
       b.href = "src";
+      b.target = "_blank";
       a.appendChild(b);
       return a;
     })(),
@@ -362,20 +443,10 @@ let magnet_table = {
   },
 
   generate: function (src, data) {
-    /*
-    let outer_table = document.createElement("table");
-    outer_table.appendChild(document.createElement("tr"));
-    outer_table.lastChild.appendChild(document.createElement("th"));
-    outer_table.appendChild(document.createElement("tr"));
-    outer_table.lastChild.appendChild(document.createElement("td"));
-    */
     let tab = document.createElement("table");
     tab.id = "nong-table";
     tab.appendChild(this.template.create_head(src));
-    //outer_table.querySelector("th").appendChild(this.template.create_head(src));
-
-
-    if (location.host === "sukebei.nyaa.se") {
+    if (src.match("sukebei.nyaa.se")) {
       for (let d of data) {
         tab.appendChild(this.template.create_row_for_sukebei(d));
       }
@@ -385,29 +456,16 @@ let magnet_table = {
         tab.appendChild(this.template.create_row(d));
       }
     }
-
-
     return tab;
-    /*
-    let wrapper = document.createElement("div");
-    wrapper.id = "nong-table-wrapper";
-    wrapper.appendChild(tab);
-
-    outer_table.querySelector("td").appendChild(wrapper);
-    return outer_table;
-    */
   },
 
 };
 let my_search = {
   current: function (kw, cb) {
     let search = my_search[GM_getValue("search_index", 0)];
-    if (!search) {
-      alert("search engine not found");
-    }
     return search(kw, cb);
   },
-  search_name_string: ["btso", "btdb"],
+  search_name_string: ["btso", "btdb", "sukebei.nyaa"],
   0: function (kw, cb) {
     GM_xmlhttpRequest({
       method: "GET",
@@ -476,6 +534,43 @@ let my_search = {
         console.error(e);
       }
     });
+  },
+  2: function (kw, cb) {
+    GM_xmlhttpRequest({
+      method: "GET",
+      url: "https://sukebei.nyaa.se/?page=search&cats=0_0&filter=0&term=" + kw,
+      onload: function (result) {
+        let doc = common.parsetext(result.responseText);
+        let data = [];
+        let t = doc.getElementsByClassName("tlistrow");
+        if (t) {
+          for (let elem of t) {
+            console.log(elem.querySelector(".tlistname a").getAttribute("href"));
+            data.push({
+              "title": elem.querySelector(".tlistname a").textContent,
+              "mag": "",
+              "torrent_url": "https:" + elem.querySelector(".tlistdownload a").getAttribute("href"),
+              "size": elem.querySelector(".tlistsize").textContent,
+              "src": "https:" + elem.querySelector(".tlistname a").getAttribute("href"),
+            });
+          }
+        }
+        else {
+          data.push({
+            "title": "没有找到磁链接",
+            "mag": "",
+            "torrent_url": "",
+            "size": "0",
+            "src": result.finalUrl,
+          });
+        }
+
+        cb(result.finalUrl, data);
+      },
+      onerror: function (e) {
+        console.error(e);
+      }
+    });
   }
 };
 let display_table = function (vid, insert_where) {
@@ -500,7 +595,7 @@ let display_table = function (vid, insert_where) {
     common.reg_event();
 
   });
-}
+};
 
 
 let dl_mode = function (v) {
@@ -515,6 +610,7 @@ let dl_mode = function (v) {
 };
 
 let run = function () {
+  max_title_length = GM_getValue("max_title_length", 60);
   let main_keys = Object.keys(main);
   for (let i = 0; i < main_keys.length; i++) {
     let v = main[main_keys[i]];
@@ -528,13 +624,16 @@ let run = function () {
 };
 
 let set_max_title_length = function () {
-  let len = prompt("请输入你想要的标题长度", GM_getValue("max_title_length", 200));
-  if (len != null && len != "") {
+  let len = prompt("请输入你想要的标题长度", GM_getValue("max_title_length", 60));
+  if (len !== null && len !== "") {
     GM_setValue("max_title_length", len);
+    let table = document.querySelector("#nong-table");
+    table.parentElement.removeChild(table);
+    run();
   }
-}
+};
 
-GM_registerMenuCommand("挊-随时开车-设置最大标题长度", set_max_title_length);
+GM_registerMenuCommand("挊随时开车-标题长度", set_max_title_length);
 run();
 
 if (window === window.top) {
