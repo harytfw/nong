@@ -327,8 +327,6 @@ let magnet_table = {
       }*/
       select_box.addEventListener("change", function (e) {
         GM_setValue("search_index", this.value);
-        let table = document.querySelector("#nong-table");
-        table.parentElement.removeChild(table);
         run();
       });
       th_list[0].appendChild(select_box);
@@ -453,7 +451,7 @@ let magnet_table = {
       let a = document.createElement("a");
       a.textContent = "size";
       return a;
-    } (),
+    }(),
     operation: (function () {
       let a = document.createElement("div");
       let copy = document.createElement("a");
@@ -478,15 +476,19 @@ let magnet_table = {
       return a;
     })(),
   },
-
-  generate: function (src, data) {
+  generate_head: function () {
     let tab = document.createElement("table");
     tab.id = "nong-table";
-    tab.appendChild(this.template.create_head(src));
+    tab.appendChild(this.template.create_head("https://greasyfork.org/zh-CN/scripts/8392-%E6%8C%8A"));
+    return tab;
+  },
+  generate: function (src, data) {
     //console.log(src);
     //console.log(data);
+    let tab = document.querySelector("#nong-table");
+    tab.querySelector("#nong-head").src = src;
     if (src.match("sukebei.nyaa.se")) {
-      data.forEach((d)=> {
+      data.forEach((d) => {
         tab.appendChild(this.template.create_row_for_sukebei(d));
       });
       /*
@@ -496,7 +498,7 @@ let magnet_table = {
       */
     }
     else {
-      data.forEach((d)=> {
+      data.forEach((d) => {
         tab.appendChild(this.template.create_row(d));
       });
       /*
@@ -644,7 +646,7 @@ let my_search = {
         let data = [];
         let t = doc.getElementsByClassName("list-con");
         if (t) {
-          
+
           Array.from(t).forEach(function (elem) {
             data.push({
               "title": elem.querySelector("dt a").textContent,
@@ -675,25 +677,34 @@ let my_search = {
 
 let display_table = function (vid, insert_where) {
   common.add_style();
-  my_search.current(vid, function (data, src) {
-
-    let tab = magnet_table.generate(data, src);
+  if (!document.querySelector("#nong-head")) {
+    let tab_with_head = magnet_table.generate_head();
     if (typeof insert_where === "string") {
       let elem = document.querySelector(insert_where);
       //console.log("display_table", tab, elem);
       if (elem) {
-        elem.parentElement.insertBefore(tab, elem);
+        elem.parentElement.insertBefore(tab_with_head, elem);
       }
     }
     else if (typeof insert_where === "function") {
-      insert_where(tab);
+      insert_where(tab_with_head);
     }
     else {
       console.error("插入表格错误");
+      return;
     }
-
+  }
+  else {
+    let head = document.querySelector("#nong-head");
+    Array.from(document.querySelectorAll(".nong-row")).forEach(function (row) {
+      if (row !== head) {
+        row.parentElement.removeChild(row);
+      }
+    });
+  }
+  my_search.current(vid, function (data, src) {
+    let tab = magnet_table.generate(data, src);
     common.reg_event();
-
   });
 };
 
@@ -759,8 +770,6 @@ let set_max_title_length = function () {
   let len = prompt("请输入你想要的标题长度", GM_getValue("max_title_length", 40));
   if (len !== null && len !== "") {
     GM_setValue("max_title_length", len);
-    let table = document.querySelector("#nong-table");
-    table.parentElement.removeChild(table);
     run();
   }
 };
