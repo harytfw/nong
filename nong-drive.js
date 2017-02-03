@@ -102,20 +102,20 @@ let i_am_old_driver = {
   add_small_icon: function () {
     let icon = document.createElement("div");
     icon.setAttribute("id", "nong-drive-anytime-icon");
-    icon.addEventListener("mouseover", function (e) {
+    icon.addEventListener("mouseover", (e)=> {
       let text = unsafeWindow.getSelection().toString();
       console.info("选中的文本:", text);
-      i_am_old_driver.selection = text;
+      this.selection = text;
     });
-    icon.addEventListener("click", function (e) {
-      i_am_old_driver.display_dialog();
+    icon.addEventListener("click", (e)=> {
+      this.display_dialog();
     });
     document.body.appendChild(icon);
   },
   display_dialog: function () {
     let dialog = document.createElement("div");
     dialog.setAttribute("id", "nong-drive-anytime-dialog");
-    dialog.addEventListener("click", function (event) {
+    dialog.addEventListener("click",(event)=> {
       event.stopPropagation();
     });
     let vid_input = document.createElement("input");
@@ -359,28 +359,20 @@ let magnet_table = {
       tr.setAttribute("mag", data.mag);
       let td = document.createElement("td");
       let append_elems = [
-
-        (function (title, src, self) {
-          return self.create_info(title, src);
-        })(data.title, data.src, this),
-
-        (function (size, src, self) {
-          return self.create_size(size, src);
-        })(data.size, data.src, this),
-
-        (function (torrent_url, self) {
-          let operate = self.create_operation(torrent_url);
+        this.create_info(data.title,  data.src),
+        this.create_size(data.size, data.src),
+        ((torrent_url = data.torrent_url)=> {
+          let operate = this.create_operation(torrent_url);
           operate.firstChild.textContent = "种子";
           operate.firstChild.setAttribute("class", "nong-copy-sukebei");
           operate.firstChild.setAttribute("target", "_blank");
           return operate;
-        })(data.torrent_url, this),
-
-        (function (self) {
+        })(),
+        (()=> {
           let div = document.createElement("div");
           div.textContent = "暂不支持离线下载";
           return div;
-        })(this)];
+        })()];
       for (let elem of append_elems) {
         let c = td.cloneNode(true);
         c.appendChild(elem);
