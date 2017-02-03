@@ -29,7 +29,7 @@
 // @include     http*://115.com/?tab=offline&mode=wangpan
 // @include     http*://www.furk.net/users/files/add
 
-// @version     1.43
+// @version     1.44
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -89,7 +89,7 @@ let main = {
       return document.querySelector(".posttitle a").textContent.match(/\[(.*)\]/)[1];
     },
   },
-  pondo1:{
+  pondo1: {
     type: 0,
     re: /1pondo\.tv.*\/index.htm/,
     insert_where: ".hdg3",
@@ -261,12 +261,18 @@ let common = {
       type: "click",
       fn: this.handle_dl_event
     }];
+    selector_event_map.forEach(function (obj) {
+      Array.from(document.querySelectorAll(obj.selector)).forEach(function (elem) {
+        elem.addEventListener(obj.type, obj.fn);
+      })
+    });
+    /*
     for (let obj of selector_event_map) {
       for (let elem of document.querySelectorAll(obj.selector)) {
         //console.log(elem, obj.type, obj.fn);
         elem.addEventListener(obj.type, obj.fn);
       }
-    }
+    }*/
   },
   parsetext: function (text) {
     let doc = null;
@@ -298,6 +304,17 @@ let magnet_table = {
       //console.log("get", GM_getValue("search_index"));
       let index = GM_getValue("search_index", 0);
       let op_value = 0;
+      option_str.forEach(function (str) {
+        let op = document.createElement("option");
+        op.value = op_value;
+        op.textContent = str;
+        if (index == op_value) {
+          op.setAttribute("selected", "selected");
+        }
+        op_value++;
+        select_box.appendChild(op);
+      });
+      /*
       for (let str of option_str) {
         let op = document.createElement("option");
         op.value = op_value;
@@ -307,7 +324,7 @@ let magnet_table = {
         }
         op_value++;
         select_box.appendChild(op);
-      }
+      }*/
       select_box.addEventListener("change", function (e) {
         GM_setValue("search_index", this.value);
         let table = document.querySelector("#nong-table");
@@ -327,9 +344,14 @@ let magnet_table = {
       th_list[3].appendChild(document.createElement("a"));
       th_list[3].lastChild.textContent = head_str[2];
 
+      th_list.forEach(function (th) {
+        a.appendChild(th);
+      });
+      /*
       for (let th of th_list) {
         a.appendChild(th);
       }
+      */
       return a;
     },
     create_row: function (data) {
@@ -337,11 +359,19 @@ let magnet_table = {
       tr.className = "nong-row";
       tr.setAttribute("mag", data.mag);
       let td = document.createElement("td");
+      let list = [this.create_info(data.title, data.mag), this.create_size(data.size, data.src), this.create_operation(data.mag), this.create_offline()];
+      list.forEach(function (elem) {
+        let c = td.cloneNode(true);
+        c.appendChild(elem);
+        tr.appendChild(c);
+      });
+      /*
       for (let elem of [this.create_info(data.title, data.mag), this.create_size(data.size, data.src), this.create_operation(data.mag), this.create_offline()]) {
         let c = td.cloneNode(true);
         c.appendChild(elem);
         tr.appendChild(c);
       }
+      */
       return tr;
     },
     create_row_for_sukebei: function (data) {
@@ -372,11 +402,18 @@ let magnet_table = {
           div.textContent = "暂不支持离线下载";
           return div;
         })(this)];
+      append_elems.forEach(function (elem) {
+        let c = td.cloneNode(true);
+        c.appendChild(elem);
+        tr.appendChild(c);
+      });
+      /*
       for (let elem of append_elems) {
         let c = td.cloneNode(true);
         c.appendChild(elem);
         tr.appendChild(c);
       }
+      */
       return tr;
     },
     create_info: function (title, mag) {
@@ -449,14 +486,24 @@ let magnet_table = {
     //console.log(src);
     //console.log(data);
     if (src.match("sukebei.nyaa.se")) {
+      data.forEach((d)=> {
+        tab.appendChild(this.template.create_row_for_sukebei(d));
+      });
+      /*
       for (let d of data) {
         tab.appendChild(this.template.create_row_for_sukebei(d));
       }
+      */
     }
     else {
+      data.forEach((d)=> {
+        tab.appendChild(this.template.create_row(d));
+      });
+      /*
       for (let d of data) {
         tab.appendChild(this.template.create_row(d));
       }
+      */
     }
     return tab;
   },
@@ -485,7 +532,7 @@ let my_search = {
         let data = [];
         let t = doc.getElementsByClassName("data-list")[0];
         if (t) {
-          for (let elem of t.getElementsByTagName("a")) {
+          Array.from(t.getElementsByTagName("a")).forEach(function (elem) {
             if (!elem.className.match("btn")) {
               data.push({
                 "title": elem.title,
@@ -494,7 +541,7 @@ let my_search = {
                 "src": elem.href,
               });
             }
-          }
+          });
         }
         else {
           data.push({
@@ -521,14 +568,14 @@ let my_search = {
         let data = [];
         let t = doc.getElementsByClassName("item-title");
         if (t) {
-          for (let elem of t) {
+          Array.from(t).forEach(function (elem) {
             data.push({
               "title": elem.firstChild.title,
               "mag": elem.nextElementSibling.firstElementChild.href,
               "size": elem.nextElementSibling.children[1].textContent,
               "src": "https://btdb.in" + elem.firstChild.getAttribute("href"),
             });
-          }
+          });
         }
         else {
           data.push({
@@ -556,7 +603,7 @@ let my_search = {
         let data = [];
         let t = doc.getElementsByClassName("tlistrow");
         if (t) {
-          for (let elem of t) {
+          Array.from(t).forEach(function (elem) {
             data.push({
               "title": elem.querySelector(".tlistname a").textContent,
               "mag": "",
@@ -564,7 +611,7 @@ let my_search = {
               "size": elem.querySelector(".tlistsize").textContent,
               "src": "https:" + elem.querySelector(".tlistname a").getAttribute("href"),
             });
-          }
+          });
         }
         else {
           data.push({
@@ -597,14 +644,15 @@ let my_search = {
         let data = [];
         let t = doc.getElementsByClassName("list-con");
         if (t) {
-          for (let elem of t) {
+          
+          Array.from(t).forEach(function (elem) {
             data.push({
               "title": elem.querySelector("dt a").textContent,
               "mag": elem.querySelector("dd a").href,
               "size": elem.querySelector(".option span:nth-child(3) b").textContent,
               "src": elem.querySelector("dt a").href,
             });
-          }
+          });
         }
         else {
           data.push({
