@@ -681,7 +681,7 @@ let dl_mode = function (v) {
     script.innerHTML = "(" + v.fill_form.toString() + ")(\"" + mag + "\")";
     document.body.appendChild(script);
   }
-  GM_getValue("magnet", "");
+  GM_setValue("magnet", "");
 };
 
 let run = function () {

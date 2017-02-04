@@ -24,12 +24,13 @@
 // @include     http*://www.icpmp.com/fanhao/*.html
 // @include     http*://blog.jav4you.com/*
 // @include     http*://*1pondo.tv/*/index.htm
+// @include     http*://www.jade-net-home.com/products/*
 
 // @include     http*://pan.baidu.com/disk/home*
 // @include     http*://115.com/?tab=offline&mode=wangpan
 // @include     http*://www.furk.net/users/files/add
 
-// @version     1.44
+// @version     1.45
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -39,7 +40,7 @@
 // @grant       GM_registerMenuCommand
 // ==/UserScript==
 
-let main = {
+var main = {
   //av信息查询 类
   jav: {
     type: 0,
@@ -97,12 +98,20 @@ let main = {
       return location.pathname.split("/")[3];
     },
   },
+  jadenethome:{
+    type:0,
+    re:/jade-net-home/,
+    insert_where:".detailStory",
+    vid:function(){
+      return document.querySelector("#detailRight dl dd").textContent;
+    }
+  },
   dmm: {
     type: 0,
     re: /dmm\.co\.jp/,
     insert_where: ".lh4",
     vid: function () {
-      let result = location.href.replace(/.*cid=/, "").replace(/\/\??.*/, "").match(/[^h_0-9].*/);
+      var result = location.href.replace(/.*cid=/, "").replace(/\/\??.*/, "").match(/[^h_0-9].*/);
       return result[0] ? result[0].replace("00", "") : "";
     }
   },
@@ -127,8 +136,8 @@ let main = {
     type: 1,
     re: /115\.com/,
     fill_form: function (link) {
-      let rsc = setInterval(function () {
-        if (document.readyState == "complete") {
+      var rsc = setInterval(function () {
+        if (document.readyState == "compvare") {
           clearInterval(rsc);
           setTimeout(function () {
             Core["OFFL5Plug"].OpenLink();
@@ -140,14 +149,14 @@ let main = {
       }, 400);
     }
   },
-  letv: {
+  varv: {
     type: 1,
-    re: /cloud\.letv\.com/,
+    re: /cloud\.varv\.com/,
     fill_form: function (link) {
       setTimeout(function () {
         $("#offline-btn").click();
         setTimeout(function () {
-          $("#offline_clear_complete").prev().click();
+          $("#offline_clear_compvare").prev().click();
           setTimeout(function () {
             $("#offline-add-link").val(link);
           }, 500);
@@ -192,7 +201,7 @@ let main = {
 
 };
 
-let offline_sites = {
+var offline_sites = {
   baidu: {
     url: "http://pan.baidu.com/disk/home",
     name: "百度云",
@@ -203,9 +212,9 @@ let offline_sites = {
     url: "http://115.com/?tab=offline&mode=wangpan",
     enable: true,
   },
-  letv: {
+  varv: {
     name: "乐视云",
-    url: "http://cloud.letv.com/webdisk/home/index",
+    url: "http://cloud.varv.com/webdisk/home/index",
     enable: false
   },
   360: {
@@ -224,7 +233,7 @@ let offline_sites = {
     enable: true
   },
 };
-let common = {
+var common = {
   add_style: function () {
     GM_addStyle([
       "#nong-table{border-collapse: initial !important;background-color: white !important;text-align: center !important;margin:10px auto;color:#666 !important;font-size:13px;text-align:center !important;border: 1px solid #cfcfcf !important;border-radius: 10px !important;}",
@@ -246,13 +255,14 @@ let common = {
     event.preventDefault(); //阻止跳转
   },
   handle_dl_event: function (event) {
-    let mag = event.target.parentElement.parentElement.parentElement.getAttribute("mag");
+    var mag = event.target.parentElement.parentElement.parentElement.getAttribute("mag");
     console.info("磁链接", mag);
+    //console.log(0);
     GM_setValue("magnet", mag);
   },
 
   reg_event: function () {
-    let selector_event_map = [{
+    var selector_event_map = [{
       selector: ".nong-copy",
       type: "click",
       fn: this.handle_copy_event
@@ -267,15 +277,15 @@ let common = {
       })
     });
     /*
-    for (let obj of selector_event_map) {
-      for (let elem of document.querySelectorAll(obj.selector)) {
+    for (var obj of selector_event_map) {
+      for (var elem of document.querySelectorAll(obj.selector)) {
         //console.log(elem, obj.type, obj.fn);
         elem.addEventListener(obj.type, obj.fn);
       }
     }*/
   },
   parsetext: function (text) {
-    let doc = null;
+    var doc = null;
     try {
       doc = document.implementation.createHTMLDocument("");
       doc.documentElement.innerHTML = text;
@@ -286,26 +296,26 @@ let common = {
     }
   },
 };
-let magnet_table = {
+var magnet_table = {
   template: {
     create_head: function (src) {
-      let a = document.createElement("tr");
+      var a = document.createElement("tr");
       a.className = "nong-row";
       a.id = "nong-head";
-      let head_str = [
+      var head_str = [
         "大小",
         "操作",
         "离线下载"
       ];
-      let th_list = [document.createElement("th"), document.createElement("th"), document.createElement("th"), document.createElement("th")];
+      var th_list = [document.createElement("th"), document.createElement("th"), document.createElement("th"), document.createElement("th")];
 
-      let select_box = document.createElement("select");
-      let option_str = my_search.search_name_string;
+      var select_box = document.createElement("select");
+      var option_str = my_search.search_name_string;
       //console.log("get", GM_getValue("search_index"));
-      let index = GM_getValue("search_index", 0);
-      let op_value = 0;
+      var index = GM_getValue("search_index", 0);
+      var op_value = 0;
       option_str.forEach(function (str) {
-        let op = document.createElement("option");
+        var op = document.createElement("option");
         op.value = op_value;
         op.textContent = str;
         if (index == op_value) {
@@ -315,8 +325,8 @@ let magnet_table = {
         select_box.appendChild(op);
       });
       /*
-      for (let str of option_str) {
-        let op = document.createElement("option");
+      for (var str of option_str) {
+        var op = document.createElement("option");
         op.value = op_value;
         op.textContent = str;
         if (index == op_value) {
@@ -346,26 +356,26 @@ let magnet_table = {
         a.appendChild(th);
       });
       /*
-      for (let th of th_list) {
+      for (var th of th_list) {
         a.appendChild(th);
       }
       */
       return a;
     },
     create_row: function (data) {
-      let tr = document.createElement("tr");
+      var tr = document.createElement("tr");
       tr.className = "nong-row";
       tr.setAttribute("mag", data.mag);
-      let td = document.createElement("td");
-      let list = [this.create_info(data.title, data.mag), this.create_size(data.size, data.src), this.create_operation(data.mag), this.create_offline()];
+      var td = document.createElement("td");
+      var list = [this.create_info(data.title, data.mag), this.create_size(data.size, data.src), this.create_operation(data.mag), this.create_offline()];
       list.forEach(function (elem) {
-        let c = td.cloneNode(true);
+        var c = td.cloneNode(true);
         c.appendChild(elem);
         tr.appendChild(c);
       });
       /*
-      for (let elem of [this.create_info(data.title, data.mag), this.create_size(data.size, data.src), this.create_operation(data.mag), this.create_offline()]) {
-        let c = td.cloneNode(true);
+      for (var elem of [this.create_info(data.title, data.mag), this.create_size(data.size, data.src), this.create_operation(data.mag), this.create_offline()]) {
+        var c = td.cloneNode(true);
         c.appendChild(elem);
         tr.appendChild(c);
       }
@@ -373,11 +383,11 @@ let magnet_table = {
       return tr;
     },
     create_row_for_sukebei: function (data) {
-      let tr = document.createElement("tr");
+      var tr = document.createElement("tr");
       tr.className = "nong-row";
       tr.setAttribute("mag", data.mag);
-      let td = document.createElement("td");
-      let append_elems = [
+      var td = document.createElement("td");
+      var append_elems = [
 
         (function (title, src, self) {
           return self.create_info(title, src);
@@ -388,7 +398,7 @@ let magnet_table = {
         })(data.size, data.src, this),
 
         (function (torrent_url, self) {
-          let operate = self.create_operation(torrent_url);
+          var operate = self.create_operation(torrent_url);
           operate.firstChild.textContent = "种子";
           operate.firstChild.setAttribute("class", "nong-copy-sukebei");
           operate.firstChild.setAttribute("target", "_blank");
@@ -396,18 +406,18 @@ let magnet_table = {
         })(data.torrent_url, this),
 
         (function (self) {
-          let div = document.createElement("div");
+          var div = document.createElement("div");
           div.textContent = "暂不支持离线下载";
           return div;
         })(this)];
       append_elems.forEach(function (elem) {
-        let c = td.cloneNode(true);
+        var c = td.cloneNode(true);
         c.appendChild(elem);
         tr.appendChild(c);
       });
       /*
-      for (let elem of append_elems) {
-        let c = td.cloneNode(true);
+      for (var elem of append_elems) {
+        var c = td.cloneNode(true);
         c.appendChild(elem);
         tr.appendChild(c);
       }
@@ -415,32 +425,32 @@ let magnet_table = {
       return tr;
     },
     create_info: function (title, mag) {
-      let a = this.info.cloneNode(true);
+      var a = this.info.cloneNode(true);
       a.firstChild.textContent = title.length < max_title_length ? title : title.substr(0, max_title_length) + "...";
       a.firstChild.href = mag;
       a.title = title;
       return a;
     },
     create_size: function (size, src) {
-      let a = this.size.cloneNode(true);
+      var a = this.size.cloneNode(true);
       a.textContent = size;
       a.href = src;
       return a;
     },
     create_operation: function (mag) {
-      let a = this.operation.cloneNode(true);
+      var a = this.operation.cloneNode(true);
       a.firstChild.href = mag;
       return a;
     },
     create_offline: function () {
-      let a = this.offline.cloneNode(true);
+      var a = this.offline.cloneNode(true);
       a.className = "nong-offline";
       return a;
     },
 
     info: (function () {
-      let a = document.createElement("div");
-      let b = document.createElement("a");
+      var a = document.createElement("div");
+      var b = document.createElement("a");
       b.textContent = "name";
       b.href = "src";
       b.target = "_blank";
@@ -448,26 +458,26 @@ let magnet_table = {
       return a;
     })(),
     size: function () {
-      let a = document.createElement("a");
+      var a = document.createElement("a");
       a.textContent = "size";
       return a;
     }(),
     operation: (function () {
-      let a = document.createElement("div");
-      let copy = document.createElement("a");
+      var a = document.createElement("div");
+      var copy = document.createElement("a");
       copy.className = "nong-copy";
       copy.textContent = "复制";
       a.appendChild(copy);
       return a;
     })(),
     offline: (function () {
-      let a = document.createElement("div");
-      let b = document.createElement("a");
+      var a = document.createElement("div");
+      var b = document.createElement("a");
       b.className = "nong-offline-download";
       b.target = "_blank";
-      for (let k in offline_sites) {
+      for (var k in offline_sites) {
         if (offline_sites[k].enable) {
-          let c = b.cloneNode(true);
+          var c = b.cloneNode(true);
           c.href = offline_sites[k].url;
           c.textContent = offline_sites[k].name;
           a.appendChild(c);
@@ -477,7 +487,7 @@ let magnet_table = {
     })(),
   },
   generate_head: function () {
-    let tab = document.createElement("table");
+    var tab = document.createElement("table");
     tab.id = "nong-table";
     tab.appendChild(this.template.create_head("https://greasyfork.org/zh-CN/scripts/8392-%E6%8C%8A"));
     return tab;
@@ -485,14 +495,14 @@ let magnet_table = {
   generate: function (src, data) {
     //console.log(src);
     //console.log(data);
-    let tab = document.querySelector("#nong-table");
+    var tab = document.querySelector("#nong-table");
     tab.querySelector("#nong-head").src = src;
     if (src.match("sukebei.nyaa.se")) {
       data.forEach((d) => {
         tab.appendChild(this.template.create_row_for_sukebei(d));
       });
       /*
-      for (let d of data) {
+      for (var d of data) {
         tab.appendChild(this.template.create_row_for_sukebei(d));
       }
       */
@@ -502,7 +512,7 @@ let magnet_table = {
         tab.appendChild(this.template.create_row(d));
       });
       /*
-      for (let d of data) {
+      for (var d of data) {
         tab.appendChild(this.template.create_row(d));
       }
       */
@@ -511,9 +521,9 @@ let magnet_table = {
   },
 
 };
-let my_search = {
+var my_search = {
   current: function (kw, cb) {
-    let search = my_search[GM_getValue("search_index", 0)];
+    var search = my_search[GM_getValue("search_index", 0)];
     try {
       return search(kw, cb);
     }
@@ -530,9 +540,9 @@ let my_search = {
       method: "GET",
       url: "https://btso.pw/search/" + kw,
       onload: function (result) {
-        let doc = common.parsetext(result.responseText);
-        let data = [];
-        let t = doc.getElementsByClassName("data-list")[0];
+        var doc = common.parsetext(result.responseText);
+        var data = [];
+        var t = doc.getElementsByClassName("data-list")[0];
         if (t) {
           Array.from(t.getElementsByTagName("a")).forEach(function (elem) {
             if (!elem.className.match("btn")) {
@@ -566,9 +576,9 @@ let my_search = {
       method: "GET",
       url: "https://btdb.in/q/" + kw + "/",
       onload: function (result) {
-        let doc = common.parsetext(result.responseText);
-        let data = [];
-        let t = doc.getElementsByClassName("item-title");
+        var doc = common.parsetext(result.responseText);
+        var data = [];
+        var t = doc.getElementsByClassName("item-title");
         if (t) {
           Array.from(t).forEach(function (elem) {
             data.push({
@@ -601,9 +611,9 @@ let my_search = {
       method: "GET",
       url: "https://sukebei.nyaa.se/?page=search&cats=0_0&filter=0&term=" + kw,
       onload: function (result) {
-        let doc = common.parsetext(result.responseText);
-        let data = [];
-        let t = doc.getElementsByClassName("tlistrow");
+        var doc = common.parsetext(result.responseText);
+        var data = [];
+        var t = doc.getElementsByClassName("tlistrow");
         if (t) {
           Array.from(t).forEach(function (elem) {
             data.push({
@@ -642,9 +652,9 @@ let my_search = {
         "Content-Type": "application/x-www-form-urlencoded"
       },
       onload: function (result) {
-        let doc = common.parsetext(result.responseText);
-        let data = [];
-        let t = doc.getElementsByClassName("list-con");
+        var doc = common.parsetext(result.responseText);
+        var data = [];
+        var t = doc.getElementsByClassName("list-con");
         if (t) {
 
           Array.from(t).forEach(function (elem) {
@@ -675,12 +685,12 @@ let my_search = {
 
 };
 
-let display_table = function (vid, insert_where) {
+var display_table = function (vid, insert_where) {
   common.add_style();
   if (!document.querySelector("#nong-head")) {
-    let tab_with_head = magnet_table.generate_head();
+    var tab_with_head = magnet_table.generate_head();
     if (typeof insert_where === "string") {
-      let elem = document.querySelector(insert_where);
+      var elem = document.querySelector(insert_where);
       //console.log("display_table", tab, elem);
       if (elem) {
         elem.parentElement.insertBefore(tab_with_head, elem);
@@ -695,7 +705,7 @@ let display_table = function (vid, insert_where) {
     }
   }
   else {
-    let head = document.querySelector("#nong-head");
+    var head = document.querySelector("#nong-head");
     Array.from(document.querySelectorAll(".nong-row")).forEach(function (row) {
       if (row !== head) {
         row.parentElement.removeChild(row);
@@ -703,13 +713,13 @@ let display_table = function (vid, insert_where) {
     });
   }
   my_search.current(vid, function (data, src) {
-    let tab = magnet_table.generate(data, src);
+    var tab = magnet_table.generate(data, src);
     common.reg_event();
   });
 };
 
-let vid_mode = function (v) {
-  let vid = "";
+var vid_mode = function (v) {
+  var vid = "";
   try {
     vid = v.vid();
   }
@@ -723,25 +733,25 @@ let vid_mode = function (v) {
   }
 };
 
-let dl_mode = function (v) {
+var dl_mode = function (v) {
 
-  let mag = GM_getValue("magnet", "");
+  var mag = GM_getValue("magnet", "");
   //console.info(1, "开始离线下载", mag);
   if (mag) {
-    let script = document.createElement("script");
+    var script = document.createElement("script");
     script.setAttribute("type", "text/javascript");
     script.innerHTML = "(" + v.fill_form.toString() + ")(\"" + mag + "\")";
     document.body.appendChild(script);
     //console.info(info);
   }
-  GM_getValue("magnet", "");
+  GM_setValue("magnet", "");
 };
 
-let run = function () {
+var run = function () {
   max_title_length = GM_getValue("max_title_length", 40);
-  let main_keys = Object.keys(main);
-  for (let i = 0; i < main_keys.length; i++) {
-    let v = main[main_keys[i]];
+  var main_keys = Object.keys(main);
+  for (var i = 0; i < main_keys.length; i++) {
+    var v = main[main_keys[i]];
 
     if (v.re && v.re.test(location.href)) {
       if (v.type === 0) {
@@ -765,9 +775,9 @@ let run = function () {
     }
   }
 };
-let max_title_length = GM_getValue("max_title_length", 40);
-let set_max_title_length = function () {
-  let len = prompt("请输入你想要的标题长度", GM_getValue("max_title_length", 40));
+var max_title_length = GM_getValue("max_title_length", 40);
+var set_max_title_length = function () {
+  var len = prompt("请输入你想要的标题长度", GM_getValue("max_title_length", 40));
   if (len !== null && len !== "") {
     GM_setValue("max_title_length", len);
     run();
