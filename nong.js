@@ -30,7 +30,7 @@
 // @include     http*://115.com/?tab=offline&mode=wangpan
 // @include     http*://www.furk.net/users/files/add
 
-// @version     1.45
+// @version     1.47
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -137,7 +137,7 @@ var main = {
     re: /115\.com/,
     fill_form: function (link) {
       var rsc = setInterval(function () {
-        if (document.readyState == "compvare") {
+        if (document.readyState == "complete") {
           clearInterval(rsc);
           setTimeout(function () {
             Core["OFFL5Plug"].OpenLink();
@@ -149,14 +149,14 @@ var main = {
       }, 400);
     }
   },
-  varv: {
+  letv: {
     type: 1,
-    re: /cloud\.varv\.com/,
+    re: /cloud\.letv\.com/,
     fill_form: function (link) {
       setTimeout(function () {
         $("#offline-btn").click();
         setTimeout(function () {
-          $("#offline_clear_compvare").prev().click();
+          $("#offline_clear_complete").prev().click();
           setTimeout(function () {
             $("#offline-add-link").val(link);
           }, 500);
@@ -214,7 +214,7 @@ var offline_sites = {
   },
   varv: {
     name: "乐视云",
-    url: "http://cloud.varv.com/webdisk/home/index",
+    url: "http://cloud.letv.com/webdisk/home/index",
     enable: false
   },
   360: {
@@ -496,7 +496,7 @@ var magnet_table = {
     //console.log(src);
     //console.log(data);
     var tab = document.querySelector("#nong-table");
-    tab.querySelector("#nong-head").src = src;
+    tab.querySelector("#nong-head th a").href = src;
     if (src.match("sukebei.nyaa.se")) {
       data.forEach((d) => {
         tab.appendChild(this.template.create_row_for_sukebei(d));
