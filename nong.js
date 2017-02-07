@@ -24,6 +24,7 @@
 // @include     http*://www.icpmp.com/fanhao/*.html
 // @include     http*://blog.jav4you.com/*
 // @include     http*://*1pondo.tv/*/index.htm
+// @include     http://www.dmm.co.jp/digital/videoa/*
 // @include     http*://www.jade-net-home.com/products/*
 
 // @include     http*://pan.baidu.com/disk/home*

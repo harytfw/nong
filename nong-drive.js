@@ -6,7 +6,7 @@
 
 // @include     http*://*
 
-// @version     1.31
+// @version     1.33
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -102,12 +102,15 @@ let i_am_old_driver = {
   add_small_icon: function () {
     let icon = document.createElement("div");
     icon.setAttribute("id", "nong-drive-anytime-icon");
-    icon.addEventListener("mouseover", (e)=> {
+    icon.addEventListener("mouseover", (e) => {
       let text = unsafeWindow.getSelection().toString();
       console.info("选中的文本:", text);
       this.selection = text;
     });
-    icon.addEventListener("click", (e)=> {
+    icon.addEventListener("click", (e) => {
+      if (this.selection === "") {
+        this.selection = unsafeWindow.getSelection().toString()
+      }
       this.display_dialog();
     });
     document.body.appendChild(icon);
@@ -115,36 +118,43 @@ let i_am_old_driver = {
   display_dialog: function () {
     let dialog = document.createElement("div");
     dialog.setAttribute("id", "nong-drive-anytime-dialog");
-    dialog.addEventListener("click",(event)=> {
+    dialog.addEventListener("click", (event) => {
       event.stopPropagation();
     });
+    let span = document.createElement("span");
+    span.textContent = "番号：";
+    dialog.appendChild(span);
     let vid_input = document.createElement("input");
     vid_input.value = this.selection;
     dialog.appendChild(vid_input);
-    //TODO confirm btn;
+
+    let btn = document.createElement("button");
+    btn.textContent = "确定";
+    btn.addEventListener("click", (e) => {
+      this.selection = vid_input.value;
+      display_table(this.selection, null);
+    });
+    dialog.appendChild(btn);
     let occupation = document.createElement("div");
     occupation.setAttribute("id", "nong-occupation");
     occupation.setAttribute("style", "dispay:none");
     dialog.appendChild(occupation);
     document.body.appendChild(dialog);
-    if (this.selection) {
-      display_table(this.selection, function (tab) {
-        let outer_table = document.createElement("table");
-        outer_table.appendChild(document.createElement("tr"));
-        outer_table.lastChild.appendChild(document.createElement("th"));
-        outer_table.appendChild(document.createElement("tr"));
-        outer_table.lastChild.appendChild(document.createElement("td"));
-        let wrapper = document.createElement("div");
-        wrapper.id = "nong-table-wrapper";
-        wrapper.appendChild(tab);
-        outer_table.querySelector("td").appendChild(wrapper);
-        document.querySelector("#nong-drive-anytime-dialog").appendChild(outer_table);
 
-      });
-    }
-    else {
-      //TODO
-    }
+    display_table(this.selection, function (tab) {
+
+      let outer_table = document.createElement("table");
+      outer_table.appendChild(document.createElement("tr"));
+      outer_table.lastChild.appendChild(document.createElement("th"));
+      outer_table.appendChild(document.createElement("tr"));
+      outer_table.lastChild.appendChild(document.createElement("td"));
+      let wrapper = document.createElement("div");
+      wrapper.id = "nong-table-wrapper";
+      wrapper.appendChild(tab);
+      outer_table.querySelector("td").appendChild(wrapper);
+      document.querySelector("#nong-drive-anytime-dialog").appendChild(outer_table);
+
+    });
   },
 };
 let main = {
@@ -258,11 +268,11 @@ let common = {
   reg_event: function () {
 
     let selector_event_map = [{
-      selector: ".nong-copy",
+      selector: "#nong-drive-anytime-dialog .nong-copy",
       type: "click",
       fn: this.handle_copy_event
     }, {
-      selector: ".nong-offline-download",
+      selector: "#nong-drive-anytime-dialog .nong-offline-download",
       type: "click",
       fn: this.handle_dl_event
     }];
@@ -319,9 +329,7 @@ let magnet_table = {
       }
       select_box.addEventListener("change", function (e) {
         GM_setValue("search_index", this.value);
-        let table = document.querySelector("#nong-table");
-        table.parentElement.removeChild(table);
-        run();
+        display_table(i_am_old_driver.selection, null);
       });
       th_list[0].appendChild(select_box);
 
@@ -359,16 +367,16 @@ let magnet_table = {
       tr.setAttribute("mag", data.mag);
       let td = document.createElement("td");
       let append_elems = [
-        this.create_info(data.title,  data.src),
+        this.create_info(data.title, data.src),
         this.create_size(data.size, data.src),
-        ((torrent_url = data.torrent_url)=> {
+        ((torrent_url = data.torrent_url) => {
           let operate = this.create_operation(torrent_url);
           operate.firstChild.textContent = "种子";
           operate.firstChild.setAttribute("class", "nong-copy-sukebei");
           operate.firstChild.setAttribute("target", "_blank");
           return operate;
         })(),
-        (()=> {
+        (() => {
           let div = document.createElement("div");
           div.textContent = "暂不支持离线下载";
           return div;
@@ -417,7 +425,7 @@ let magnet_table = {
       let a = document.createElement("a");
       a.textContent = "size";
       return a;
-    } (),
+    }(),
     operation: (function () {
       let a = document.createElement("div");
       let copy = document.createElement("a");
@@ -449,29 +457,19 @@ let magnet_table = {
     return tab;
   },
   generate: function (src, data) {
-    //console.log(src);
-    //console.log(data);
-    let tab = document.querySelector("#nong-table");
+    let tab = document.querySelector("#nong-drive-anytime-dialog #nong-table");
     tab.querySelector("#nong-head").src = src;
     if (src.match("sukebei.nyaa.se")) {
       data.forEach((d) => {
         tab.appendChild(this.template.create_row_for_sukebei(d));
       });
-      /*
-      for (let d of data) {
-        tab.appendChild(this.template.create_row_for_sukebei(d));
-      }
-      */
+
     }
     else {
       data.forEach((d) => {
         tab.appendChild(this.template.create_row(d));
       });
-      /*
-      for (let d of data) {
-        tab.appendChild(this.template.create_row(d));
-      }
-      */
+
     }
     return tab;
   },
@@ -641,7 +639,7 @@ let my_search = {
 };
 let display_table = function (vid, insert_where) {
   common.add_style();
-  if (!document.querySelector("#nong-head")) {
+  if (!document.querySelector("#nong-drive-anytime-dialog #nong-head")) {
     let tab_with_head = magnet_table.generate_head();
     if (typeof insert_where === "string") {
       let elem = document.querySelector(insert_where);
@@ -659,8 +657,8 @@ let display_table = function (vid, insert_where) {
     }
   }
   else {
-    let head = document.querySelector("#nong-head");
-    Array.from(document.querySelectorAll(".nong-row")).forEach(function (row) {
+    let head = document.querySelector("#nong-drive-anytime-dialog #nong-head");
+    Array.from(document.querySelectorAll("#nong-drive-anytime-dialog .nong-row")).forEach(function (row) {
       if (row !== head) {
         row.parentElement.removeChild(row);
       }
@@ -706,8 +704,37 @@ let set_max_title_length = function () {
     run();
   }
 };
+let select_popup = function () {
+  let enable = GM_getValue("enable_select_popup", false);
+  if (enable) {
+    let flag = false;
+    document.body.addEventListener("mouseup",function(e){
+      console.log(e);
+      let elem = document.querySelector("#nong-drive-anytime-icon");
+      elem.style.left = e.clientX+"px";
+      elem.style.top = e.clientY+"px";
+      e.stopPropagation();
+      //elem.style.position = "absolute";
+    });
+    document.body.addEventListener("click",function(e){
+      console.log("select_popup",e)
+      let elem = document.querySelector("#nong-drive-anytime-icon");
+      elem.setAttribute("style","");
+    });
+    GM_registerMenuCommand("挊随时开车-关闭选中时弹出图标", function () {
+      GM_setValue("enable_select_popup", false);
+    });
+  }
+  else {
 
+    GM_registerMenuCommand("挊随时开车-开启选中时弹出图标", function () {
+      GM_setValue("enable_select_popup", true);
+    });
+  }
+}
 GM_registerMenuCommand("挊随时开车-标题长度", set_max_title_length);
+
+select_popup()
 run();
 
 if (window === window.top) {
