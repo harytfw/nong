@@ -6,7 +6,7 @@
 
 // @include     http*://*
 
-// @version     1.33
+// @version     1.34
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -109,7 +109,7 @@ let i_am_old_driver = {
     });
     icon.addEventListener("click", (e) => {
       if (this.selection === "") {
-        this.selection = unsafeWindow.getSelection().toString()
+        this.selection = unsafeWindow.getSelection().toString();
       }
       this.display_dialog();
     });
@@ -707,19 +707,20 @@ let set_max_title_length = function () {
 let select_popup = function () {
   let enable = GM_getValue("enable_select_popup", false);
   if (enable) {
-    let flag = false;
-    document.body.addEventListener("mouseup",function(e){
-      console.log(e);
-      let elem = document.querySelector("#nong-drive-anytime-icon");
-      elem.style.left = e.clientX+"px";
-      elem.style.top = e.clientY+"px";
-      e.stopPropagation();
+    document.body.addEventListener("mouseup", function (e) {
+      if (unsafeWindow.getSelection().toString() !== "") {
+        let elem = document.querySelector("#nong-drive-anytime-icon");
+        elem.style.left = e.clientX + "px";
+        elem.style.top = e.clientY + "px";
+      }
       //elem.style.position = "absolute";
     });
-    document.body.addEventListener("click",function(e){
-      console.log("select_popup",e)
-      let elem = document.querySelector("#nong-drive-anytime-icon");
-      elem.setAttribute("style","");
+    document.body.addEventListener("mousedown", function (e) {
+      if (e.target.id !== "nong-drive-anytime-icon") {
+        let elem = document.querySelector("#nong-drive-anytime-icon");
+        elem.setAttribute("style", "");
+      }
+
     });
     GM_registerMenuCommand("挊随时开车-关闭选中时弹出图标", function () {
       GM_setValue("enable_select_popup", false);
