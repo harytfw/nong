@@ -6,7 +6,7 @@
 
 // @include     http*://*
 
-// @version     1.34
+// @version     1.35
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -126,6 +126,11 @@ let i_am_old_driver = {
     dialog.appendChild(span);
     let vid_input = document.createElement("input");
     vid_input.value = this.selection;
+    vid_input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        e.target.nextElementSibling.click();
+      }
+    })
     dialog.appendChild(vid_input);
 
     let btn = document.createElement("button");
@@ -458,7 +463,7 @@ let magnet_table = {
   },
   generate: function (src, data) {
     let tab = document.querySelector("#nong-drive-anytime-dialog #nong-table");
-    tab.querySelector("#nong-head").src = src;
+    tab.querySelector("#nong-head a").href = src;
     if (src.match("sukebei.nyaa.se")) {
       data.forEach((d) => {
         tab.appendChild(this.template.create_row_for_sukebei(d));
@@ -727,7 +732,6 @@ let select_popup = function () {
     });
   }
   else {
-
     GM_registerMenuCommand("挊随时开车-开启选中时弹出图标", function () {
       GM_setValue("enable_select_popup", true);
     });
