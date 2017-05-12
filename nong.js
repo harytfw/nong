@@ -3,7 +3,7 @@
 // @namespace   撸
 // @description 自动获取磁链接并自动离线下载
 
-// @include     http*://avmo.pw/*
+// @include     http*://avio.pw/*
 // @include     http*://avso.pw/*
 // @include     http*://avxo.pw/*
 // @include     http*://www.av28.com/*/movie/*
@@ -31,7 +31,7 @@
 // @include     http*://115.com/?tab=offline&mode=wangpan
 // @include     http*://www.furk.net/users/files/add
 
-// @version     1.47
+// @version     1.48
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -45,7 +45,7 @@ var main = {
   //av信息查询 类
   jav: {
     type: 0,
-    re: /(avmo|avso|avxo|av28).*movie.*/,
+    re: /(avio|avso|avxo|av28).*movie.*/,
     insert_where: "#movie-share",
     vid: function () {
       return document.querySelector(".header").nextElementSibling.innerHTML;
