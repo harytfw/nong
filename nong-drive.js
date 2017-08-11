@@ -6,7 +6,7 @@
 
 // @include     http*://*
 
-// @version     1.36
+// @version     1.37
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -582,7 +582,7 @@ let my_search = {
     1: function (kw, cb) {
         GM_xmlhttpRequest({
             method: "GET",
-            url: "https://btdb.in/q/" + kw + "/",
+            url: "http://btdb.to/q/" + kw + "/",
             onload: function (result) {
                 let doc = common.parsetext(result.responseText);
                 let data = [];
@@ -617,19 +617,19 @@ let my_search = {
     2: function (kw, cb) {
         GM_xmlhttpRequest({
             method: "GET",
-            url: "https://sukebei.nyaa.se/?page=search&cats=0_0&filter=0&term=" + kw,
+            url: "https://nyaa.si/?f=0&c=0_0&q=" + kw,
             onload: function (result) {
                 let doc = common.parsetext(result.responseText);
                 let data = [];
-                let t = doc.getElementsByClassName("tlistrow");
-                if (t) {
+                let t = doc.querySelectorAll("tr.default");
+                if (t.length!==0) {
                     for (let elem of t) {
                         data.push({
-                            "title": elem.querySelector(".tlistname a").textContent,
+                            "title": elem.querySelector("td:nth-child(2)>a:nth-child(1)").title,
                             "mag": "",
-                            "torrent_url": "https:" + elem.querySelector(".tlistdownload a").getAttribute("href"),
-                            "size": elem.querySelector(".tlistsize").textContent,
-                            "src": "https:" + elem.querySelector(".tlistname a").getAttribute("href"),
+                            "torrent_url": "https:" + elem.querySelector("td:nth-child(3)>a:nth-child(1)").href,
+                            "size": elem.querySelector("td:nth-child(4)").textContent,
+                            "src": "https:" + elem.querySelector("td:nth-child(2)>a:nth-child(1)").href,
                         });
                     }
                 }
@@ -776,8 +776,7 @@ let select_popup = function () {
 
         });
         GM_registerMenuCommand("挊随时开车-关闭选中时弹出图标", function () {
-            GM_setValue("enable_select_popup", false);
-        });
+            GM_setValue("enable_select_popup", false);        });
     } else {
         GM_registerMenuCommand("挊随时开车-开启选中时弹出图标", function () {
             GM_setValue("enable_select_popup", true);

@@ -575,7 +575,7 @@ var my_search = {
   1: function (kw, cb) {
     GM_xmlhttpRequest({
       method: "GET",
-      url: "https://btdb.in/q/" + kw + "/",
+      url: "http://btdb.to/q/" + kw + "/",
       onload: function (result) {
         var doc = common.parsetext(result.responseText);
         var data = [];
@@ -608,42 +608,42 @@ var my_search = {
     });
   },
   2: function (kw, cb) {
-    GM_xmlhttpRequest({
-      method: "GET",
-      url: "https://sukebei.nyaa.se/?page=search&cats=0_0&filter=0&term=" + kw,
-      onload: function (result) {
-        var doc = common.parsetext(result.responseText);
-        var data = [];
-        var t = doc.getElementsByClassName("tlistrow");
-        if (t) {
-          Array.from(t).forEach(function (elem) {
-            data.push({
-              "title": elem.querySelector(".tlistname a").textContent,
-              "mag": "",
-              "torrent_url": "https:" + elem.querySelector(".tlistdownload a").getAttribute("href"),
-              "size": elem.querySelector(".tlistsize").textContent,
-              "src": "https:" + elem.querySelector(".tlistname a").getAttribute("href"),
-            });
-          });
-        }
-        else {
-          data.push({
-            "title": "没有找到磁链接",
-            "mag": "",
-            "torrent_url": "",
-            "size": "0",
-            "src": result.finalUrl,
-          });
-        }
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: "https://nyaa.si/?f=0&c=0_0&q=" + kw,
+            onload: function (result) {
+                let doc = common.parsetext(result.responseText);
+                let data = [];
+                let t = doc.querySelectorAll("tr.default");
+                if (t.length!==0) {
+                    for (let elem of t) {
+                        data.push({
+                            "title": elem.querySelector("td:nth-child(2)>a:nth-child(1)").title,
+                            "mag": "",
+                            "torrent_url": "https:" + elem.querySelector("td:nth-child(3)>a:nth-child(1)").href,
+                            "size": elem.querySelector("td:nth-child(4)").textContent,
+                            "src": "https:" + elem.querySelector("td:nth-child(2)>a:nth-child(1)").href,
+                        });
+                    }
+                }
+                else {
+                    data.push({
+                        "title": "没有找到磁链接",
+                        "mag": "",
+                        "torrent_url": "",
+                        "size": "0",
+                        "src": result.finalUrl,
+                    });
+                }
 
-        cb(result.finalUrl, data);
-      },
-      onerror: function (e) {
-        console.error(e);
-        throw "search error";
-      }
-    });
-  },
+                cb(result.finalUrl, data);
+            },
+            onerror: function (e) {
+                console.error(e);
+                throw "search error";
+            }
+        });
+    },
   3: function (kw, cb) {
     GM_xmlhttpRequest({
       method: "POST",
