@@ -513,7 +513,7 @@ let magnet_table = {
     generate: function (src, data) {
         let tab = document.querySelector("#nong-drive-anytime-dialog #nong-table");
         tab.querySelector("#nong-head a").href = src;
-        if (src.match("sukebei.nyaa.se")) {
+        if (src.match("nyaa.si")) {
             data.forEach((d) => {
                 tab.appendChild(this.template.create_row_for_sukebei(d));
             });
@@ -530,7 +530,7 @@ let magnet_table = {
 };
 let my_search = {
 
-    search_name_string: ["btso", "btdb", "sukebei.nyaa", "btkitty"],
+    search_name_string: ["btso", "btdb", "nyaa.si", "btkitty"],
     current: function (kw, cb) {
         let search = my_search[GM_getValue("search_index", 0)];
         try {
@@ -627,9 +627,9 @@ let my_search = {
                         data.push({
                             "title": elem.querySelector("td:nth-child(2)>a:nth-child(1)").title,
                             "mag": "",
-                            "torrent_url": "https:" + elem.querySelector("td:nth-child(3)>a:nth-child(1)").href,
+                            "torrent_url": "https://nyaa.si" + elem.querySelector("td:nth-child(3)>a:nth-child(1)").href,
                             "size": elem.querySelector("td:nth-child(4)").textContent,
-                            "src": "https:" + elem.querySelector("td:nth-child(2)>a:nth-child(1)").href,
+                            "src": "https://nyaa.si" + elem.querySelector("td:nth-child(2)>a:nth-child(1)").href,
                         });
                     }
                 }

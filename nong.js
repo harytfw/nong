@@ -498,7 +498,7 @@ var magnet_table = {
     //console.log(data);
     var tab = document.querySelector("#nong-table");
     tab.querySelector("#nong-head th a").href = src;
-    if (src.match("sukebei.nyaa.se")) {
+    if (src.match("nyaa.si")) {
       data.forEach((d) => {
         tab.appendChild(this.template.create_row_for_sukebei(d));
       });
@@ -535,7 +535,7 @@ var my_search = {
   search_error: function (r) {
     alert("搜索出现错误，请检查网络");
   },
-  search_name_string: ["btso", "btdb", "sukebei.nyaa", "btkitty"],
+  search_name_string: ["btso", "btdb", "nyaa.si", "btkitty"],
   0: function (kw, cb) {
     GM_xmlhttpRequest({
       method: "GET",
@@ -620,9 +620,9 @@ var my_search = {
                         data.push({
                             "title": elem.querySelector("td:nth-child(2)>a:nth-child(1)").title,
                             "mag": "",
-                            "torrent_url": "https:" + elem.querySelector("td:nth-child(3)>a:nth-child(1)").href,
+                            "torrent_url": "https://nyaa.si" + elem.querySelector("td:nth-child(3)>a:nth-child(1)").href,
                             "size": elem.querySelector("td:nth-child(4)").textContent,
-                            "src": "https:" + elem.querySelector("td:nth-child(2)>a:nth-child(1)").href,
+                            "src": "https://nyaa.si" + elem.querySelector("td:nth-child(2)>a:nth-child(1)").href,
                         });
                     }
                 }
