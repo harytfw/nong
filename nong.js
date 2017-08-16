@@ -12,6 +12,7 @@
 // @include     http*://*javlib.com/*
 // @include     http*://*javl10.com/*
 // @include     http*://*jav11b.com/*
+// @include     http*://*ja14b.com/*
 
 // @include     http*://www.libredmm.com/products/*
 
@@ -31,7 +32,7 @@
 // @include     http*://115.com/?tab=offline&mode=wangpan
 // @include     http*://www.furk.net/users/files/add
 
-// @version     1.48
+// @version     1.50
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -53,7 +54,7 @@ var main = {
   },
   javlibrary: {
     type: 0,
-    re: /(javlibrary|javlib|javl10|jav11b).*\?v=.*/,
+    re: /(javlibrary|javlib|javl10|jav11b|ja14b).*\?v=.*/,
     insert_where: "#video_favorite_edit",
     vid: function () {
       return document.querySelector("#video_id").getElementsByClassName("text")[0].innerHTML;
@@ -535,82 +536,82 @@ var my_search = {
   search_error: function (r) {
     alert("搜索出现错误，请检查网络");
   },
-  search_name_string: ["btso", "btdb", "nyaa.si", "btkitty"],
-  0: function (kw, cb) {
-    GM_xmlhttpRequest({
-      method: "GET",
-      url: "https://btso.pw/search/" + kw,
-      onload: function (result) {
-        var doc = common.parsetext(result.responseText);
-        var data = [];
-        var t = doc.getElementsByClassName("data-list")[0];
-        if (t) {
-          Array.from(t.getElementsByTagName("a")).forEach(function (elem) {
-            if (!elem.className.match("btn")) {
-              data.push({
-                "title": elem.title,
-                "mag": "magnet:?xt=urn:btih:" + elem.outerHTML.replace(/.*hash\//, "").replace(/" .*\n.*\n.*\n.*/, ""),
-                "size": elem.nextElementSibling.textContent,
-                "src": elem.href,
-              });
-            }
-          });
-        }
-        else {
-          data.push({
-            "title": "没有找到磁链接",
-            "mag": "",
-            "size": "0",
-            "src": result.finalUrl,
-          });
-        }
-        cb(result.finalUrl, data);
-      },
-      onerror: function (e) {
-        console.error(e);
-        throw "search error";
-      }
-    });
-  },
-  1: function (kw, cb) {
-    GM_xmlhttpRequest({
-      method: "GET",
-      url: "http://btdb.to/q/" + kw + "/",
-      onload: function (result) {
-        var doc = common.parsetext(result.responseText);
-        var data = [];
-        var t = doc.getElementsByClassName("item-title");
-        if (t) {
-          Array.from(t).forEach(function (elem) {
-            data.push({
-              "title": elem.firstChild.title,
-              "mag": elem.nextElementSibling.firstElementChild.href,
-              "size": elem.nextElementSibling.children[1].textContent,
-              "src": "https://btdb.in" + elem.firstChild.getAttribute("href"),
-            });
-          });
-        }
-        else {
-          data.push({
-            "title": "没有找到磁链接",
-            "mag": "",
-            "size": "0",
-            "src": result.finalUrl,
-          });
-        }
-
-        cb(result.finalUrl, data);
-      },
-      onerror: function (e) {
-        console.error(e);
-        throw "search error";
-      }
-    });
-  },
-  2: function (kw, cb) {
+  search_name_string: ["btso", "btdb", "nyaa.si", "btkitty","torrentkitty","btlibrary"],
+    0: function (kw, cb) {
         GM_xmlhttpRequest({
             method: "GET",
-            url: "https://nyaa.si/?f=0&c=0_0&q=" + kw,
+            url: "https://btso.pw/search/" + kw,
+            onload: function (result) {
+                let doc = common.parsetext(result.responseText);
+                let data = [];
+                let t = doc.getElementsByClassName("data-list")[0];
+                if (t) {
+                    for (let elem of t.getElementsByTagName("a")) {
+                        if (!elem.className.match("btn")) {
+                            data.push({
+                                "title": elem.title,
+                                "mag": "magnet:?xt=urn:btih:" + elem.outerHTML.replace(/.*hash\//, "").replace(/" .*\n.*\n.*\n.*/, ""),
+                                "size": elem.nextElementSibling.textContent,
+                                "src": elem.href,
+                            });
+                        }
+                    }
+                }
+                else {
+                    data.push({
+                        "title": "没有找到磁链接",
+                        "mag": "",
+                        "size": "0",
+                        "src": result.finalUrl,
+                    });
+                }
+                cb(result.finalUrl, data);
+            },
+            onerror: function (e) {
+                console.error(e);
+                throw "search error";
+            }
+        });
+    },
+    1: function (kw, cb) {
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: "http://btdb.to/q/" + kw + "/",
+            onload: function (result) {
+                let doc = common.parsetext(result.responseText);
+                let data = [];
+                let t = doc.getElementsByClassName("item-title");
+                if (t) {
+                    for (let elem of t) {
+                        data.push({
+                            "title": elem.firstChild.title,
+                            "mag": elem.nextElementSibling.firstElementChild.href,
+                            "size": elem.nextElementSibling.children[1].textContent,
+                            "src": "https://btdb.in" + elem.firstChild.getAttribute("href"),
+                        });
+                    }
+                }
+                else {
+                    data.push({
+                        "title": "没有找到磁链接",
+                        "mag": "",
+                        "size": "0",
+                        "src": result.finalUrl,
+                    });
+                }
+
+                cb(result.finalUrl, data);
+            },
+            onerror: function (e) {
+                console.error(e);
+                throw "search error";
+            }
+        });
+    },
+    2: function (kw, cb) {
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: "https://sukebei.nyaa.si/?f=0&c=0_0&q=" + kw,
             onload: function (result) {
                 let doc = common.parsetext(result.responseText);
                 let data = [];
@@ -644,46 +645,117 @@ var my_search = {
             }
         });
     },
-  3: function (kw, cb) {
-    GM_xmlhttpRequest({
-      method: "POST",
-      url: "http://btkitty.bid/",
-      data: "keyword=" + kw,
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      onload: function (result) {
-        var doc = common.parsetext(result.responseText);
-        var data = [];
-        var t = doc.getElementsByClassName("list-con");
-        if (t) {
-
-          Array.from(t).forEach(function (elem) {
-            data.push({
-              "title": elem.querySelector("dt a").textContent,
-              "mag": elem.querySelector("dd a").href,
-              "size": elem.querySelector(".option span:nth-child(3) b").textContent,
-              "src": elem.querySelector("dt a").href,
-            });
-          });
-        }
-        else {
-          data.push({
-            "title": "没有找到磁链接",
-            "mag": "",
-            "size": "0",
-            "src": result.finalUrl,
-          });
-        }
-        cb(result.finalUrl, data);
-      },
-      onerror: function (e) {
-        console.error(e);
-        throw "search error";
-      }
-    })
-  },
-
+    3: function (kw, cb) {
+        GM_xmlhttpRequest({
+            method: "POST",
+            url: "http://btkitty.pet/",
+            data: "keyword=" + kw+"&hidden=true",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            onload: function (result) {
+                let doc = common.parsetext(result.responseText);
+                let data = [];
+                let t = doc.getElementsByClassName("list-con");
+                if (t) {
+                    for (let elem of t) {
+                        data.push({
+                            "title": elem.querySelector("dt a").textContent,
+                            "mag": elem.querySelector("dd a").href,
+                            "size": elem.querySelector(".option span:nth-child(3) b").textContent,
+                            "src": elem.querySelector("dt a").href,
+                        });
+                    }
+                }
+                else {
+                    data.push({
+                        "title": "没有找到磁链接",
+                        "mag": "",
+                        "size": "0",
+                        "src": result.finalUrl,
+                    });
+                }
+                cb(result.finalUrl, data);
+            },
+            onerror: function (e) {
+                console.error(e);
+                throw "search error";
+            }
+        });
+    },
+    4: function (kw, cb) {
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: "https://www.torrentkitty.tv/search/"+kw,
+            onload: function (result) {
+                let doc = common.parsetext(result.responseText);
+                let data = [];
+                let t = doc.querySelectorAll("#archiveResult tr");
+                if (t) {
+                		t = Array.slice(t,1,t.length)
+                    for (let elem of t) {
+                        data.push({
+                            "title": elem.querySelector(".name").textContent,
+                            "mag": elem.querySelector(".action>a:nth-child(2)").href,
+                            "size": elem.querySelector(".size").textContent,
+                            "src": elem.querySelector(".action>a:nth-child(1)").href,
+                        });
+                    }
+                }
+                else {
+                    data.push({
+                        "title": "没有找到磁链接",
+                        "mag": "",
+                        "size": "0",
+                        "src": result.finalUrl,
+                    });
+                }
+                cb(result.finalUrl, data);
+            },
+            onerror: function (e) {
+                console.error(e);
+                throw "search error";
+            }
+        });
+    },
+    5: function (kw, cb) {
+        GM_xmlhttpRequest({
+            method: "POST",
+            url: "http://btlibrary.pw",
+            data: "keyword=" + kw,
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            onload: function (result) {
+                let doc = common.parsetext(result.responseText);
+                let data = [];
+                let t = doc.querySelectorAll(".item");
+                if (t) {
+                    for (let elem of t) {
+                        data.push({
+                            "title": elem.querySelector(".item-title>a").textContent,
+                            "mag": elem.querySelector(".item-detail>span:nth-child(1)>a").href,
+                            "size": elem.querySelector(".item-detail>span:nth-child(3)>b").textContent,
+                            "src": elem.querySelector(".item-title>a").href,
+                        });
+                    }
+                }
+                else {
+                    data.push({
+                        "title": "没有找到磁链接",
+                        "mag": "",
+                        "size": "0",
+                        "src": result.finalUrl,
+                    });
+                }
+                cb(result.finalUrl, data);
+            },
+            onerror: function (e) {
+                console.error(e);
+                throw "search error";
+            }
+        });
+    },
 };
 
 var display_table = function (vid, insert_where) {

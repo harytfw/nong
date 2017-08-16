@@ -6,7 +6,7 @@
 
 // @include     http*://*
 
-// @version     1.37
+// @version     1.39
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -530,7 +530,7 @@ let magnet_table = {
 };
 let my_search = {
 
-    search_name_string: ["btso", "btdb", "nyaa.si", "btkitty"],
+    search_name_string: ["btso", "btdb", "nyaa.si", "btkitty","torrentkitty","btlibrary"],
     current: function (kw, cb) {
         let search = my_search[GM_getValue("search_index", 0)];
         try {
@@ -617,7 +617,7 @@ let my_search = {
     2: function (kw, cb) {
         GM_xmlhttpRequest({
             method: "GET",
-            url: "https://nyaa.si/?f=0&c=0_0&q=" + kw,
+            url: "https://sukebei.nyaa.si/?f=0&c=0_0&q=" + kw,
             onload: function (result) {
                 let doc = common.parsetext(result.responseText);
                 let data = [];
@@ -654,8 +654,8 @@ let my_search = {
     3: function (kw, cb) {
         GM_xmlhttpRequest({
             method: "POST",
-            url: "http://btkitty.bid/",
-            data: "keyword=" + kw,
+            url: "http://btkitty.pet/",
+            data: "keyword=" + kw+"&hidden=true",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded"
             },
@@ -670,6 +670,79 @@ let my_search = {
                             "mag": elem.querySelector("dd a").href,
                             "size": elem.querySelector(".option span:nth-child(3) b").textContent,
                             "src": elem.querySelector("dt a").href,
+                        });
+                    }
+                }
+                else {
+                    data.push({
+                        "title": "没有找到磁链接",
+                        "mag": "",
+                        "size": "0",
+                        "src": result.finalUrl,
+                    });
+                }
+                cb(result.finalUrl, data);
+            },
+            onerror: function (e) {
+                console.error(e);
+                throw "search error";
+            }
+        });
+    },
+    4: function (kw, cb) {
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: "https://www.torrentkitty.tv/search/"+kw,
+            onload: function (result) {
+                let doc = common.parsetext(result.responseText);
+                let data = [];
+                let t = doc.querySelectorAll("#archiveResult tr");
+                if (t) {
+                		t = Array.slice(t,1,t.length)
+                    for (let elem of t) {
+                        data.push({
+                            "title": elem.querySelector(".name").textContent,
+                            "mag": elem.querySelector(".action>a:nth-child(2)").href,
+                            "size": elem.querySelector(".size").textContent,
+                            "src": elem.querySelector(".action>a:nth-child(1)").href,
+                        });
+                    }
+                }
+                else {
+                    data.push({
+                        "title": "没有找到磁链接",
+                        "mag": "",
+                        "size": "0",
+                        "src": result.finalUrl,
+                    });
+                }
+                cb(result.finalUrl, data);
+            },
+            onerror: function (e) {
+                console.error(e);
+                throw "search error";
+            }
+        });
+    },
+    5: function (kw, cb) {
+        GM_xmlhttpRequest({
+            method: "POST",
+            url: "http://btlibrary.pw",
+            data: "keyword=" + kw,
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            onload: function (result) {
+                let doc = common.parsetext(result.responseText);
+                let data = [];
+                let t = doc.querySelectorAll(".item");
+                if (t) {
+                    for (let elem of t) {
+                        data.push({
+                            "title": elem.querySelector(".item-title>a").textContent,
+                            "mag": elem.querySelector(".item-detail>span:nth-child(1)>a").href,
+                            "size": elem.querySelector(".item-detail>span:nth-child(3)>b").textContent,
+                            "src": elem.querySelector(".item-title>a").href,
                         });
                     }
                 }
