@@ -462,6 +462,7 @@ var magnet_table = {
     size: function () {
       var a = document.createElement("a");
       a.textContent = "size";
+      a.target = "_blank";
       return a;
     }(),
     operation: (function () {
