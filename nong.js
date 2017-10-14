@@ -399,13 +399,13 @@ var magnet_table = {
           return self.create_size(size, src);
         })(data.size, data.src, this),
 
-        (function (torrent_url, self) {
-          var operate = self.create_operation(torrent_url);
+        (function (mag, self) {
+          var operate = self.create_operation(mag);
           operate.firstChild.textContent = "种子";
           operate.firstChild.setAttribute("class", "nong-copy-sukebei");
           operate.firstChild.setAttribute("target", "_blank");
           return operate;
-        })(data.torrent_url, this),
+        })(data.mag, this),
 
         (function (self) {
           var div = document.createElement("div");
@@ -621,10 +621,10 @@ var my_search = {
                     for (let elem of t) {
                         data.push({
                             "title": elem.querySelector("td:nth-child(2)>a:nth-child(1)").title,
-                            "mag": "",
-                            "torrent_url": "https://nyaa.si" + elem.querySelector("td:nth-child(3)>a:nth-child(1)").href,
+                            "mag": elem.querySelector("td:nth-child(3)>a:nth-child(2)").href,
+                            "torrent_url": "https://sukebei.nyaa.si" + elem.querySelector("td:nth-child(3)>a:nth-child(1)").href,
                             "size": elem.querySelector("td:nth-child(4)").textContent,
-                            "src": "https://nyaa.si" + elem.querySelector("td:nth-child(2)>a:nth-child(1)").href,
+                            "src": "https://sukebei.nyaa.si" + elem.querySelector("td:nth-child(2)>a:nth-child(1)").href,
                         });
                     }
                 }
