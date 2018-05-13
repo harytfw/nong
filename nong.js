@@ -3,7 +3,10 @@
 // @namespace   撸
 // @description 自动获取磁链接并自动离线下载
 
-// @include     http*://avio.pw/*
+
+
+
+// @include     http*://javmoo.net/*
 // @include     http*://avso.pw/*
 // @include     http*://avxo.pw/*
 // @include     http*://www.av28.com/*/movie/*
@@ -11,8 +14,8 @@
 // @include     http*://*javlibrary.com/*
 // @include     http*://*javlib.com/*
 // @include     http*://*javl10.com/*
-// @include     http*://*jav11b.com/*
-// @include     http*://*ja14b.com/*
+// @include     http*://*19lib.com/*
+// @include     http*://*j15av.com/*
 
 // @include     http*://www.libredmm.com/products/*
 
@@ -46,7 +49,7 @@ var main = {
   //av信息查询 类
   jav: {
     type: 0,
-    re: /(avio|avso|avxo|av28).*movie.*/,
+    re: /(javmoo|avio|avso|avxo|av28).*movie.*/,
     insert_where: "#movie-share",
     vid: function () {
       return document.querySelector(".header").nextElementSibling.innerHTML;
@@ -54,7 +57,7 @@ var main = {
   },
   javlibrary: {
     type: 0,
-    re: /(javlibrary|javlib|javl10|jav11b|ja14b).*\?v=.*/,
+    re: /(javlibrary|\d\dlib|jav\d\db).*\?v=.*/,
     insert_where: "#video_favorite_edit",
     vid: function () {
       return document.querySelector("#video_id").getElementsByClassName("text")[0].innerHTML;
