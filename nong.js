@@ -6,8 +6,8 @@
 
 
 
-// @include     http*://javmoo.net/*
-// @include     http*://avso.pw/*
+// @include     http*://javkey.com/*
+// @include     http*://avsox1.com/*
 // @include     http*://avxo.pw/*
 // @include     http*://www.av28.com/*/movie/*
 
@@ -16,16 +16,15 @@
 // @include     http*://*javl10.com/*
 // @include     http*://*19lib.com/*
 // @include     http*://*j15av.com/*
+// @include     http*://*d21b.com/*
 
-// @include     http*://www.libredmm.com/products/*
+// @include     http*://www.libredmm.com/movies/*
 
 // @include     http*://www.javbus.com/*
 // @include     http*://www.javbus.me/*
-// @include     http*://www.javbus2.com/*
-// @include     http*://www.javbus3.com/*
-// @include     http*://www.javbus5.com/*
+// @include     http*://www.javbus.in/*
 
-// @include     http*://www.icpmp.com/fanhao/*.html
+
 // @include     http*://blog.jav4you.com/*
 // @include     http*://*1pondo.tv/*/index.htm
 // @include     http*://www.dmm.co.jp/digital/videoa/*
@@ -35,7 +34,7 @@
 // @include     http*://115.com/?tab=offline&mode=wangpan
 // @include     http*://www.furk.net/users/files/add
 
-// @version     1.50
+// @version     1.51
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -49,7 +48,7 @@ var main = {
   //av信息查询 类
   jav: {
     type: 0,
-    re: /(javmoo|avio|avso|avxo|av28).*movie.*/,
+    re: /(javmoo|avio|avso|avxo|av28|javkey|avsox1).*movie.*/,
     insert_where: "#movie-share",
     vid: function () {
       return document.querySelector(".header").nextElementSibling.innerHTML;
@@ -57,7 +56,7 @@ var main = {
   },
   javlibrary: {
     type: 0,
-    re: /(javlibrary|\d\dlib|jav\d\db).*\?v=.*/,
+    re: /(javlibrary|\d\dlib|jav\d\db|d21b).*\?v=.*/,
     insert_where: "#video_favorite_edit",
     vid: function () {
       return document.querySelector("#video_id").getElementsByClassName("text")[0].innerHTML;
