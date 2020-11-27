@@ -2,8 +2,9 @@
 // @name        挊
 // @namespace   撸
 // @description 自动获取磁链接并自动离线下载
+// @homepage https://github.com/ken3613/nong
 
-
+// @connect nyaa.si
 
 
 // @include     http*://javkey.com/*
@@ -34,7 +35,7 @@
 // @include     http*://115.com/?tab=offline&mode=wangpan
 // @include     http*://www.furk.net/users/files/add
 
-// @version     1.51
+// @version     1.55
 // @run-at      document-end
 // @grant       GM_xmlhttpRequest
 // @grant       GM_setClipboard
@@ -621,12 +622,15 @@ var my_search = {
                 let t = doc.querySelectorAll("tr.default");
                 if (t.length!==0) {
                     for (let elem of t) {
+                    		let torrent_url = elem.querySelector("td:nth-child(3)>a:nth-child(1)").href;
+                    		let hn = GM_getValue("hn","");
+                    		torrent_url = torrent_url.replace(hn,"https://sukebei.nyaa.si");
                         data.push({
                             "title": elem.querySelector("td:nth-child(2)>a:nth-child(1)").title,
                             "mag": "",
-                            "torrent_url": "https://nyaa.si" + elem.querySelector("td:nth-child(3)>a:nth-child(1)").href,
+                            "torrent_url": torrent_url,
                             "size": elem.querySelector("td:nth-child(4)").textContent,
-                            "src": "https://nyaa.si" + elem.querySelector("td:nth-child(2)>a:nth-child(1)").href,
+                            "src": "https://sukebei.nyaa.si" + elem.querySelector("td:nth-child(2)>a:nth-child(1)").href.replace(hn,""),
                         });
                     }
                 }
@@ -824,6 +828,8 @@ var dl_mode = function (v) {
 };
 
 var run = function () {
+	let hn = window.location.protocol + "//" + window.location.hostname;
+	GM_setValue("hn",hn);
   max_title_length = GM_getValue("max_title_length", 40);
   var main_keys = Object.keys(main);
   for (var i = 0; i < main_keys.length; i++) {
